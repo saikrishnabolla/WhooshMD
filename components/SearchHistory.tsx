@@ -62,50 +62,60 @@ const SearchHistory: React.FC<SearchHistoryProps> = ({ onSelectHistory }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex justify-between items-center p-2 hover:bg-gray-50 rounded-md transition-colors"
+        className="w-full flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-all duration-200"
       >
-        <h3 className="text-lg font-medium text-gray-800 flex items-center">
-          <Clock size={18} className="mr-2" />
+        <h3 className="text-lg font-medium text-gray-900 flex items-center">
+          <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mr-3">
+            <Clock size={16} className="text-blue-600" />
+          </div>
           Recent Searches
         </h3>
         <ChevronDown
           size={20}
-          className={`text-gray-500 transform transition-transform ${
+          className={`text-gray-400 transform transition-transform duration-200 ${
             isExpanded ? 'rotate-180' : ''
           }`}
         />
       </button>
       
       {isExpanded && (
-        <div className="mt-4 space-y-2">
-          <div className="flex justify-end mb-2">
+        <div className="mt-6 space-y-3">
+          <div className="flex justify-end mb-4">
             <button
               onClick={handleClearHistory}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm text-red-600 hover:text-red-700 transition-colors font-medium px-3 py-1.5 rounded-lg hover:bg-red-50"
             >
               Clear History
             </button>
           </div>
-          {history.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onSelectHistory(item.params)}
-              className="w-full text-left p-3 rounded-md hover:bg-gray-50 transition-colors flex justify-between items-center group"
-            >
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-700">{getSearchSummary(item.params)}</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(item.timestamp).toLocaleString()} • {item.resultCount} results
+          <div className="space-y-2">
+            {history.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onSelectHistory(item.params)}
+                className="w-full text-left p-4 rounded-xl hover:bg-gray-50 transition-all duration-200 flex justify-between items-center group border border-transparent hover:border-gray-200"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 mb-1 truncate">
+                    {getSearchSummary(item.params)}
+                  </div>
+                  <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <span>{new Date(item.timestamp).toLocaleDateString()}</span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                    <span className="text-primary-600 font-medium">{item.resultCount} results</span>
+                  </div>
                 </div>
-              </div>
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                <Search size={16} className="text-primary-600" />
-              </div>
-            </button>
-          ))}
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-3">
+                  <div className="w-8 h-8 bg-primary-50 rounded-full flex items-center justify-center">
+                    <Search size={14} className="text-primary-600" />
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

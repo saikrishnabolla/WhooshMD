@@ -60,45 +60,47 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, onViewDetails }) 
 
   return (
     <div 
-      className="glass-card rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group hover-lift h-full"
+      className="bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 hover:border-gray-200 transition-all duration-300 overflow-hidden cursor-pointer group h-full"
       onClick={() => onViewDetails(provider)}
     >
-      <div className="p-4 sm:p-6 cursor-pointer group h-full flex flex-col">
-        <div className="p-3 sm:p-5 border-b border-gray-100">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2">
-                {getProviderName()}
-              </h3>
-              {primaryTaxonomy && (
-                <div className="flex items-center mt-1 text-sm text-gray-500">
-                  <Stethoscope size={14} className="mr-1" />
-                  <span className="truncate max-w-[200px] sm:max-w-[250px]">{primaryTaxonomy.desc}</span>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={toggleFavorite}
-              className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
-                favorite 
-                  ? 'text-primary-600 hover:text-primary-700' 
-                  : 'text-gray-400 hover:text-primary-600'
-              } transition-colors focus:outline-none`}
-              aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <Heart size={18} fill={favorite ? 'currentColor' : 'none'} />
-            </button>
+      <div className="p-6 h-full flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-medium text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
+              {getProviderName()}
+            </h3>
+            {primaryTaxonomy && (
+              <div className="flex items-center text-sm text-gray-600">
+                <Stethoscope size={16} className="mr-2 text-gray-400" />
+                <span className="truncate">{primaryTaxonomy.desc}</span>
+              </div>
+            )}
           </div>
+          <button
+            onClick={toggleFavorite}
+            className={`p-2 rounded-full flex-shrink-0 ml-3 transition-all duration-200 ${
+              favorite 
+                ? 'text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100' 
+                : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+            }`}
+            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Heart size={18} fill={favorite ? 'currentColor' : 'none'} />
+          </button>
         </div>
         
-        <div className="p-3 sm:p-5 space-y-3 flex-1">
+        {/* Content */}
+        <div className="space-y-4 flex-1">
           {primaryAddress && (
             <div className="flex items-start">
-              <MapPin size={18} className="text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
-              <div className="text-xs sm:text-sm text-gray-700">
-                <div>{primaryAddress.address_1}</div>
+              <div className="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                <MapPin size={16} className="text-blue-600" />
+              </div>
+              <div className="text-sm text-gray-700 font-light leading-relaxed">
+                <div className="font-medium text-gray-900">{primaryAddress.address_1}</div>
                 {primaryAddress.address_2 && <div>{primaryAddress.address_2}</div>}
-                <div>
+                <div className="text-gray-600">
                   {primaryAddress.city}, {primaryAddress.state} {primaryAddress.postal_code}
                 </div>
               </div>
@@ -107,10 +109,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, onViewDetails }) 
           
           {primaryAddress?.telephone_number && (
             <div className="flex items-center">
-              <Phone size={18} className="text-gray-500 mr-2 flex-shrink-0" />
+              <div className="w-9 h-9 bg-green-50 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                <Phone size={16} className="text-green-600" />
+              </div>
               <a 
                 href={`tel:${primaryAddress.telephone_number.replace(/[^\d]/g, '')}`}
-                className="text-xs sm:text-sm text-primary-600 hover:text-primary-800 transition-colors"
+                className="text-sm text-primary-600 hover:text-primary-700 transition-colors font-medium"
                 onClick={(e) => e.stopPropagation()}
               >
                 {primaryAddress.telephone_number}
@@ -119,25 +123,29 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, onViewDetails }) 
           )}
           
           <div className="flex items-center">
-            <Calendar size={18} className="text-gray-500 mr-2 flex-shrink-0" />
-            <span className="text-xs sm:text-sm text-gray-600">
-              Last Updated: {new Date(provider.basic.last_updated).toLocaleDateString()}
+            <div className="w-9 h-9 bg-purple-50 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+              <Calendar size={16} className="text-purple-600" />
+            </div>
+            <span className="text-sm text-gray-600 font-light">
+              Updated {new Date(provider.basic.last_updated).toLocaleDateString()}
             </span>
           </div>
         </div>
         
-        <div className="bg-gray-50/50 backdrop-blur-sm p-3 flex justify-between items-center rounded-xl mt-auto">
-          <span className="text-xs text-gray-500">
+        {/* Footer */}
+        <div className="bg-gray-50 p-4 rounded-xl mt-6 flex justify-between items-center">
+          <span className="text-xs text-gray-500 font-medium">
             NPI: {provider.number}
           </span>
           <button 
-            className="text-xs sm:text-sm text-primary-600 hover:text-primary-800 flex items-center transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors group-hover:gap-2 transition-all duration-200"
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails(provider);
             }}
           >
-            View Details <ExternalLink size={14} className="ml-1" />
+            View Details 
+            <ExternalLink size={14} className="transition-transform group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>

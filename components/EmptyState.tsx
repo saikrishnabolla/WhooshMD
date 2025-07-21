@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, AlertCircle, Loader2, Stethoscope } from 'lucide-react';
 
 interface EmptyStateProps {
   type: 'initial' | 'no-results' | 'error' | 'loading';
@@ -10,26 +10,26 @@ const EmptyState: React.FC<EmptyStateProps> = ({ type, message }) => {
   const getIcon = () => {
     switch (type) {
       case 'initial':
-        return <Search size={48} className="text-gray-400" />;
+        return <Stethoscope size={64} className="text-gray-300" />;
       case 'no-results':
-        return <Search size={48} className="text-gray-400" />;
+        return <Search size={64} className="text-gray-300" />;
       case 'error':
-        return <AlertCircle size={48} className="text-red-500" />;
+        return <AlertCircle size={64} className="text-red-400" />;
       case 'loading':
-        return <Loader2 size={48} className="text-primary-500 animate-spin" />;
+        return <Loader2 size={64} className="text-primary-500 animate-spin" />;
     }
   };
 
   const getTitle = () => {
     switch (type) {
       case 'initial':
-        return 'Start searching for providers';
+        return 'Ready to find your healthcare provider?';
       case 'no-results':
         return 'No providers found';
       case 'error':
         return 'Something went wrong';
       case 'loading':
-        return 'Searching for providers...';
+        return 'Searching providers...';
     }
   };
 
@@ -38,27 +38,68 @@ const EmptyState: React.FC<EmptyStateProps> = ({ type, message }) => {
     
     switch (type) {
       case 'initial':
-        return 'Use the search form above to find healthcare providers.';
+        return 'Use the search form above to find verified healthcare providers in your area. All providers are HIPAA compliant and offer real-time availability.';
       case 'no-results':
-        return 'Try adjusting your search criteria or expanding your search area.';
+        return 'Try expanding your search criteria, checking your ZIP code, or selecting a different specialty to find more providers.';
       case 'error':
-        return 'An error occurred while searching for providers. Please try again.';
+        return 'We encountered an issue while searching for providers. Please check your connection and try again.';
       case 'loading':
-        return 'Please wait while we search for healthcare providers...';
+        return 'We\'re searching through thousands of verified healthcare providers to find the best matches for you...';
     }
   };
 
+  const getActionButton = () => {
+    if (type === 'no-results') {
+      return (
+        <button 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <Search size={16} />
+          Refine Search
+        </button>
+      );
+    }
+    
+    if (type === 'error') {
+      return (
+        <button 
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          Try Again
+        </button>
+      );
+    }
+    
+    return null;
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      <div className="mb-4">
-        {getIcon()}
+    <div className="text-center py-16 lg:py-24">
+      <div className="max-w-md mx-auto">
+        {/* Icon */}
+        <div className="flex justify-center mb-8 animate-fade-in">
+          {getIcon()}
+        </div>
+        
+        {/* Title */}
+        <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4 animate-fade-in delay-100">
+          {getTitle()}
+        </h3>
+        
+        {/* Message */}
+        <p className="text-gray-600 mb-8 leading-relaxed animate-fade-in delay-200 font-light">
+          {getMessage()}
+        </p>
+        
+        {/* Action Button */}
+        {getActionButton() && (
+          <div className="animate-fade-in delay-300">
+            {getActionButton()}
+          </div>
+        )}
       </div>
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-        {getTitle()}
-      </h3>
-      <p className="text-gray-600 max-w-md">
-        {getMessage()}
-      </p>
     </div>
   );
 };

@@ -136,19 +136,20 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
   }, [searchParams.enumeration_type, searchParams.organization_name, searchParams.first_name, searchParams.last_name]);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 transition-all duration-300">
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 lg:p-8 transition-all duration-300 hover:shadow-2xl">
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <p className="text-sm text-gray-600">
-            Search by provider name (optional) or select a specialty to find healthcare providers near you.
+        <div className="mb-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-2">Search Healthcare Providers</h2>
+          <p className="text-gray-600 font-light">
+            Search by provider name or select a specialty to find verified healthcare providers near you.
           </p>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* First Row - Provider Name and Type */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <label htmlFor="provider_name" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="lg:col-span-2">
+              <label htmlFor="provider_name" className="block text-sm font-medium text-gray-700 mb-2">
                 Provider Name (Optional)
               </label>
               <input
@@ -159,13 +160,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                 placeholder={searchParams.enumeration_type === 'NPI-2' ? 
                   "Organization name" : 
                   "First and last name"}
-                className="w-full h-10 px-3 sm:px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
+                className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
                 aria-label="Provider or organization name"
               />
             </div>
             
             <div>
-              <label htmlFor="enumeration_type" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="enumeration_type" className="block text-sm font-medium text-gray-700 mb-2">
                 Provider Type
               </label>
               <select
@@ -173,7 +174,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                 name="enumeration_type"
                 value={searchParams.enumeration_type || ''}
                 onChange={handleInputChange}
-                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
+                className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 bg-white"
               >
                 <option value="">All Types</option>
                 <option value="NPI-1">Individual</option>
@@ -183,11 +184,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
           </div>
           
           {/* Second Row - Specialty, Results, and Location */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-4 lg:gap-6">
             {/* Mobile: Stack all fields vertically */}
-            <div className="block md:hidden space-y-4">
+            <div className="block lg:hidden space-y-4">
               <div>
-                <label htmlFor="taxonomy_description_mobile" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="taxonomy_description_mobile" className="block text-sm font-medium text-gray-700 mb-2">
                   Specialty
                 </label>
                 <select
@@ -195,7 +196,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                   name="taxonomy_description"
                   value={searchParams.taxonomy_description || ''}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 bg-white"
                 >
                   {specialties.map(specialty => (
                     <option key={specialty.value} value={specialty.value}>
@@ -207,7 +208,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="limit_mobile" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="limit_mobile" className="block text-sm font-medium text-gray-700 mb-2">
                     Results
                   </label>
                   <select
@@ -215,7 +216,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                     name="limit"
                     value={searchParams.limit || 50}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                    className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 bg-white"
                   >
                     <option value={20}>20</option>
                     <option value={50}>50</option>
@@ -225,7 +226,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                 </div>
                 
                 <div>
-                  <label htmlFor="postal_code_mobile" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="postal_code_mobile" className="block text-sm font-medium text-gray-700 mb-2">
                     ZIP Code
                   </label>
                   <div className="flex">
@@ -236,19 +237,19 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                       value={searchParams.postal_code || ''}
                       onChange={handleInputChange}
                       placeholder="ZIP"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      className="w-full h-12 px-4 border border-gray-200 rounded-l-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
                     />
                     <button 
                       type="button"
                       onClick={handleUseCurrentLocation}
                       disabled={gettingLocation}
-                      className="px-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md border border-l-0 border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 flex-shrink-0"
+                      className="px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-xl border border-l-0 border-gray-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 flex-shrink-0 hover:shadow-sm"
                       aria-label="Use current location"
                     >
                       {gettingLocation ? (
-                        <Loader2 size={16} className="animate-spin" />
+                        <Loader2 size={18} className="animate-spin" />
                       ) : (
-                        <MapPin size={16} />
+                        <MapPin size={18} />
                       )}
                     </button>
                   </div>
@@ -257,9 +258,9 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
             </div>
             
             {/* Desktop: Horizontal layout */}
-            <div className="hidden md:grid md:grid-cols-4 gap-4">
+            <div className="hidden lg:grid lg:grid-cols-4 gap-6">
               <div>
-                <label htmlFor="taxonomy_description" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="taxonomy_description" className="block text-sm font-medium text-gray-700 mb-2">
                   Specialty
                 </label>
                 <select
@@ -267,7 +268,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                   name="taxonomy_description"
                   value={searchParams.taxonomy_description || ''}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base"
+                  className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 bg-white"
                 >
                   {specialties.map(specialty => (
                     <option key={specialty.value} value={specialty.value}>
@@ -278,7 +279,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
               </div>
               
               <div>
-                <label htmlFor="limit" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="limit" className="block text-sm font-medium text-gray-700 mb-2">
                   Results
                 </label>
                 <select
@@ -286,7 +287,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                   name="limit"
                   value={searchParams.limit || 50}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base"
+                  className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 bg-white"
                 >
                   <option value={20}>20</option>
                   <option value={50}>50</option>
@@ -296,7 +297,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
               </div>
               
               <div className="col-span-2">
-                <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-2">
                   Postal Code
                 </label>
                 <div className="flex">
@@ -307,19 +308,19 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                     value={searchParams.postal_code || ''}
                     onChange={handleInputChange}
                     placeholder="Enter ZIP code"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base"
+                    className="w-full h-12 px-4 border border-gray-200 rounded-l-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
                   />
                   <button 
                     type="button"
                     onClick={handleUseCurrentLocation}
                     disabled={gettingLocation}
-                    className="px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md border border-l-0 border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 flex-shrink-0"
+                    className="px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-xl border border-l-0 border-gray-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 flex-shrink-0 hover:shadow-sm"
                     aria-label="Use current location"
                   >
                     {gettingLocation ? (
-                      <Loader2 size={18} className="animate-spin" />
+                      <Loader2 size={20} className="animate-spin" />
                     ) : (
-                      <MapPin size={18} />
+                      <MapPin size={20} />
                     )}
                   </button>
                 </div>
@@ -329,10 +330,10 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
           
           {/* Advanced Options */}
           {advancedMode && (
-            <div className="space-y-4 pt-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-4 pt-6 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
                 <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
                     City
                   </label>
                   <input
@@ -342,12 +343,12 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                     value={searchParams.city || ''}
                     onChange={handleInputChange}
                     placeholder="City name"
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
+                    className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
                     State
                   </label>
                   <input
@@ -358,7 +359,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                     onChange={handleInputChange}
                     placeholder="2-letter state code (e.g., CA)"
                     maxLength={2}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
+                    className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -366,23 +367,23 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
           )}
           
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-between items-center pt-2">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-4">
             <button
               type="button"
               onClick={() => setAdvancedMode(!advancedMode)}
-              className="text-sm text-primary-600 hover:text-primary-800 focus:outline-none transition-colors order-2 sm:order-1"
+              className="text-sm text-primary-600 hover:text-primary-700 focus:outline-none transition-colors font-medium order-2 sm:order-1"
             >
               {advancedMode ? 'Hide Advanced Options' : 'Show Advanced Options'}
             </button>
             
-            <div className="flex gap-2 w-full sm:w-auto order-1 sm:order-2">
+            <div className="flex gap-3 w-full sm:w-auto order-1 sm:order-2">
               <button
                 type="button"
                 onClick={handleClear}
-                className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors text-sm"
+                className="flex-1 sm:flex-none px-6 py-3 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 font-medium"
               >
-                <span className="flex items-center justify-center">
-                  <X size={14} className="mr-1" />
+                <span className="flex items-center justify-center gap-2">
+                  <X size={16} />
                   Clear
                 </span>
               </button>
@@ -390,18 +391,18 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 sm:flex-none px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors disabled:opacity-70 text-sm"
+                className="flex-1 sm:flex-none px-8 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 font-medium shadow-lg hover:shadow-xl"
               >
-                <span className="flex items-center justify-center">
+                <span className="flex items-center justify-center gap-2">
                   {isLoading ? (
                     <>
-                      <Loader2 size={14} className="mr-2 animate-spin" />
+                      <Loader2 size={16} className="animate-spin" />
                       Searching...
                     </>
                   ) : (
                     <>
-                      <Search size={14} className="mr-2" />
-                      Search
+                      <Search size={16} />
+                      Search Providers
                     </>
                   )}
                 </span>
