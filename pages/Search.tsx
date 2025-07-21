@@ -26,6 +26,25 @@ const Search: React.FC = () => {
   const [selectedProviders, setSelectedProviders] = useState<Provider[]>([]);
   const [showVoiceCallModal, setShowVoiceCallModal] = useState(false);
 
+  // Handle URL parameters on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const postal_code = urlParams.get('postal_code');
+    const taxonomy_description = urlParams.get('taxonomy_description');
+    
+    if (postal_code || taxonomy_description) {
+      const params: SearchParams = {
+        version: '2.1',
+        limit: 50,
+        ...(postal_code && { postal_code }),
+        ...(taxonomy_description && { taxonomy_description })
+      };
+      
+      setSearchParams(params);
+      handleSearch(params);
+    }
+  }, []);
+
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
     setError(null);
@@ -89,7 +108,8 @@ const Search: React.FC = () => {
       
       <SearchForm 
         onSearch={handleSearch} 
-        isLoading={isLoading} 
+        isLoading={isLoading}
+        initialParams={searchParams}
       />
       
       <div className="mt-8">
