@@ -1,0 +1,304 @@
+'use client'
+
+import React from 'react';
+import { X, MapPin, Phone, Mail, Globe, Heart, Calendar, Stethoscope, ArrowLeft } from 'lucide-react';
+import { Provider } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { navigateToUrl } from '../lib/utils';
+import { isFavorite, addFavorite, removeFavorite } from '../services/storage';
+
+interface ProviderDetailProps {
+  provider: Provider;
+  onClose: () => void;
+}
+
+const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) => {
+  const { user } = useAuth();
+  const [favorite, setFavorite] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user) {
+      setFavorite(isFavorite(user.id, provider.number));
+    }
+  }, [provider.number, user]);
+  const toggleFavorite = () => {
+    if (favorite) {
+      removeFavorite(user?.id || '', provider.number);
+      setFavorite(false);
+    } else {
+      addFavorite({
+        id: provider.number,
+        provider,
+        timestamp: Date.now(),
+      }, user?.id || '');
+      setFavorite(true);
+    }
+  };
+
+  const isOrganization = provider.enumeration_type === 'NPI-2';
+  
+  const getProviderName = () => {
+    if (isOrganization) {
+      return provider.basic.organization_name;
+    } else {
+      const { first_name, last_name, middle_name, credential } = provider.basic;
+      return `${first_name}${middle_name ? ` ${middle_name}` : ''} ${last_name}${credential ? `, ${credential}` : ''}`;
+    }
+  };
+
+  const primaryLocation = provider.addresses.find(addr => addr.address_purpose === 'LOCATION') || provider.addresses[0];
+  const mailingAddress = provider.addresses.find(addr => addr.address_purpose === 'MAILING');
+  
+  const getPrimaryTaxonomy = () => {
+    return provider.taxonomies.find(tax => tax.primary) || provider.taxonomies[0];
+  };
+
+  const getWebsite = () => {
+    if (!provider.endpoints) return null;
+    return provider.endpoints.find(ep => 
+      ep.endpointType?.toLowerCase().includes('web') || 
+      ep.endpointType?.toLowerCase().includes('url')
+    );
+  };
+
+  const getEmailAddress = () => {
+    if (!provider.endpoints) return null;
+    return provider.endpoints.find(ep => 
+      ep.endpointType?.toLowerCase().includes('email') || 
+      ep.endpoint?.includes('@')
+    );
+  };
+
+  const getFormattedAddress = (address: typeof primaryLocation) => {
+    if (!address) return '';
+    
+    let formatted = address.address_1;
+    if (address.address_2) formatted += `, ${address.address_2}`;
+    formatted += `<br>${address.city}, ${address.state} ${address.postal_code}`;
+    
+    return formatted;
+  };
+
+  const getGoogleMapsUrl = (address: typeof primaryLocation) => {
+    if (!address) return '';
+    
+    const query = encodeURIComponent(
+      `${address.address_1}, ${address.city}, ${address.state} ${address.postal_code}`
+    );
+    
+    return `https://www.google.com/maps/search/?api=1&query=${query}`;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative animate-fade-scale">
+        <div className="sticky top-0 z-10 bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 focus:outline-none flex items-center"
+          >
+            <ArrowLeft size={20} className="mr-1" />
+            <span>Back</span>
+          </button>
+          
+          <button
+            onClick={user ? toggleFavorite : () => navigateToUrl('/dashboard')}
+            className={`p-2 rounded-full flex items-center ${
+              favorite 
+                ? 'text-red-500 hover:text-red-600' 
+                : 'text-gray-400 hover:text-red-500'
+            } transition-colors focus:outline-none`}
+            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Heart size={20} fill={favorite ? 'currentColor' : 'none'} className="mr-1" />
+            <span>{user ? (favorite ? 'Saved' : 'Save') : 'Sign in to save'}</span>
+          </button>
+        </div>
+        
+        <div className="p-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">{getProviderName()}</h2>
+            <div className="flex flex-wrap items-center mt-2">
+              {getPrimaryTaxonomy() && (
+                <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mr-2 mb-2">
+                  <Stethoscope size={14} className="mr-1" />
+                  {getPrimaryTaxonomy().desc}
+                </span>
+              )}
+              <span className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mb-2">
+                {isOrganization ? 'Organization' : 'Individual Provider'}
+              </span>
+            </div>
+            <div className="text-sm text-gray-600 mt-1 flex items-center">
+              <Calendar size={14} className="mr-1" />
+              Last Updated: {new Date(provider.basic.last_updated).toLocaleDateString()}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {primaryLocation && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Practice Location</h3>
+                <div className="flex items-start mb-3">
+                  <MapPin size={18} className="text-gray-500 mt-1 mr-2 flex-shrink-0" />
+                  <div>
+                    <div>{primaryLocation.address_1}</div>
+                    {primaryLocation.address_2 && <div>{primaryLocation.address_2}</div>}
+                    <div>
+                      {primaryLocation.city}, {primaryLocation.state} {primaryLocation.postal_code}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="ml-7 mb-3">
+                  <a 
+                    href={getGoogleMapsUrl(primaryLocation)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary-600 hover:text-primary-800 transition-colors"
+                  >
+                    View on Google Maps
+                  </a>
+                </div>
+                
+                {primaryLocation.telephone_number && (
+                  <div className="flex items-center mb-3">
+                    <Phone size={18} className="text-gray-500 mr-2 flex-shrink-0" />
+                    <a 
+                      href={`tel:${primaryLocation.telephone_number.replace(/[^\d]/g, '')}`}
+                      className="text-primary-600 hover:text-primary-800 transition-colors"
+                    >
+                      {primaryLocation.telephone_number}
+                    </a>
+                  </div>
+                )}
+                
+                {primaryLocation.fax_number && (
+                  <div className="flex items-start mb-3">
+                    <span className="text-gray-500 mr-2 flex-shrink-0 font-medium">Fax:</span>
+                    <span>{primaryLocation.fax_number}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <div>
+              {mailingAddress && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Mailing Address</h3>
+                  <div className="flex items-start">
+                    <MapPin size={18} className="text-gray-500 mt-1 mr-2 flex-shrink-0" />
+                    <div>
+                      <div>{mailingAddress.address_1}</div>
+                      {mailingAddress.address_2 && <div>{mailingAddress.address_2}</div>}
+                      <div>
+                        {mailingAddress.city}, {mailingAddress.state} {mailingAddress.postal_code}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Contact Information</h3>
+                
+                {getEmailAddress() && (
+                  <div className="flex items-center mb-3">
+                    <Mail size={18} className="text-gray-500 mr-2 flex-shrink-0" />
+                    <a 
+                      href={`mailto:${getEmailAddress()?.endpoint}`}
+                      className="text-primary-600 hover:text-primary-800 transition-colors"
+                    >
+                      {getEmailAddress()?.endpoint}
+                    </a>
+                  </div>
+                )}
+                
+                {getWebsite() && (
+                  <div className="flex items-center mb-3">
+                    <Globe size={18} className="text-gray-500 mr-2 flex-shrink-0" />
+                    <a 
+                      href={getWebsite()?.endpoint || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-800 transition-colors"
+                    >
+                      {getWebsite()?.endpoint}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {provider.taxonomies.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Specialties & Licenses</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 font-semibold text-gray-700">Specialty</th>
+                      <th className="text-left py-2 font-semibold text-gray-700">License</th>
+                      <th className="text-left py-2 font-semibold text-gray-700">State</th>
+                      <th className="text-left py-2 font-semibold text-gray-700">Primary</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {provider.taxonomies.map((taxonomy, index) => (
+                      <tr key={index} className={index < provider.taxonomies.length - 1 ? 'border-b border-gray-200' : ''}>
+                        <td className="py-3">{taxonomy.desc}</td>
+                        <td className="py-3">{taxonomy.license || '-'}</td>
+                        <td className="py-3">{taxonomy.state || '-'}</td>
+                        <td className="py-3">{taxonomy.primary ? 'Yes' : 'No'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          
+          {provider.other_names && provider.other_names.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Other Names</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <ul className="space-y-2">
+                  {provider.other_names.map((name, index) => (
+                    <li key={index} className="text-gray-700">
+                      {isOrganization ? name.organization_name : `${name.first_name} ${name.last_name}`}
+                      {name.type && <span className="text-sm text-gray-500 ml-2">({name.type})</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <div className="text-sm text-gray-500 flex flex-wrap items-center justify-between">
+              <div>
+                <span>NPI: {provider.number}</span>
+                <span className="mx-2">•</span>
+                <span>Status: {provider.basic.status}</span>
+              </div>
+              
+              <div className="mt-2 sm:mt-0">
+                <a 
+                  href={`https://npiregistry.cms.hhs.gov/provider-view/${provider.number}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:text-primary-800 transition-colors"
+                >
+                  View on NPI Registry
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProviderDetail;
