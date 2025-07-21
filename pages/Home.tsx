@@ -3,12 +3,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from '../components/ui/Link';
 import { 
-  Search, Brain, Phone, ShieldCheck, Wind, 
-  ArrowRight, Sparkles, Clock, Check
-} from 'lucide-react';
-import { 
-  Stethoscope, Calendar, Zap, 
-  HeartPulse, Activity, Timer
+  Search, ArrowRight, Shield, Heart, Clock, 
+  CheckCircle, Calendar, Phone, Play, Zap, Award
 } from 'lucide-react';
 
 const Home: React.FC = () => {
@@ -34,216 +30,262 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-600 to-primary-900 opacity-95" />
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: 'url("https://images.pexels.com/photos/3845810/pexels-photo-3845810.jpeg")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        />
+    <div className="flex flex-col bg-white">
+      {/* Hero Section - Apple-inspired minimal design */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
         
-        <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 py-20 max-w-6xl">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-lg px-4 py-2 rounded-full text-white/90 mb-6 animate-fade-in">
-              <Sparkles size={16} className="text-yellow-300" />
-              <span className="text-sm font-medium">AI-Powered Healthcare Search</span>
+        {/* Floating elements - minimal and healthcare themed */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary-200 rounded-full animate-pulse opacity-40" />
+          <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-green-300 rounded-full animate-pulse opacity-30 delay-1000" />
+          <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-blue-200 rounded-full animate-pulse opacity-50 delay-2000" />
+        </div>
+        
+        <div className="container relative mx-auto px-6 lg:px-8 max-w-6xl">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Trust badge */}
+            <div className="inline-flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-2 rounded-full text-green-700 mb-8 animate-fade-in">
+              <Shield size={14} />
+              <span className="text-sm font-medium">HIPAA Compliant • Verified Providers</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight animate-fade-scale">
-              Find Healthcare,
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">
-                Faster Than Ever
+            {/* Main headline - Apple-style typography */}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-light text-gray-900 mb-6 leading-tight tracking-tight animate-fade-scale">
+              Healthcare appointments
+              <span className="block font-medium text-primary-600">
+                in under 30 seconds
               </span>
             </h1>
             
-            <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-2xl animate-fade-in delay-200">
-              Our AI-powered platform finds real-time appointment availability from local clinics 
-              in seconds, not days. Experience healthcare search reimagined.
+            {/* Subheadline */}
+            <p className="text-xl sm:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in delay-200 font-light">
+              AI-powered scheduling that finds real availability, verifies insurance, 
+              and books your appointment — all while you wait.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in delay-300">
+            {/* CTA Section */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in delay-300">
               <Link 
                 href="/search" 
-                className="inline-flex items-center justify-center bg-white text-primary-600 px-8 py-4 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 group"
+                className="group bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 text-lg"
               >
-                <Search size={20} className="mr-2" />
-                Start Searching
-                <ArrowRight size={16} className="ml-2 transform group-hover:translate-x-1 transition-transform" />
+                Find Care Now
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               
-              <Link
-                href="/about"
-                className="inline-flex items-center justify-center bg-white/10 backdrop-blur-lg text-white px-8 py-4 rounded-full font-medium hover:bg-white/20 transition-all duration-300"
-              >
-                Learn More
-              </Link>
+              <button className="group flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                <div className="w-12 h-12 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm">
+                  <Play size={16} className="ml-0.5" />
+                </div>
+                Watch how it works
+              </button>
+            </div>
+            
+            {/* Social proof - minimal */}
+            <div className="text-center text-gray-500 text-sm animate-fade-in delay-400">
+              Trusted by <span className="font-medium text-gray-700">10,000+</span> patients across the US
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* Problem/Solution Section */}
       <section className="py-24 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <div className="text-center mb-16 fade-in">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-              Why Choose Whoosh MD?
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              From 'I need a doctor' to 'I have one'. Quick, simple, and effective healthcare provider matching.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 fade-in">
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-6">
-                <Calendar className="w-6 h-6 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-3">Real-time, Verified Openings</h3>
-              <p className="text-gray-600">
-                See only appointment slots that truly exist—no stale directories, no phone tag.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 fade-in delay-100">
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-6">
-                <Zap className="w-6 h-6 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Parallel AI Outreach</h3>
-              <p className="text-gray-600">
-                Our assistant contacts multiple clinics at once and surfaces matches in seconds.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 fade-in delay-200">
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-6">
-                <HeartPulse className="w-6 h-6 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Access for Every Patient</h3>
-              <p className="text-gray-600">
-                Web, phone, or SMS options ensure Medicaid members, seniors, and low-tech users are never left out.
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 fade-in delay-300">
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-6">
-                <Activity className="w-6 h-6 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Zero Lift for Clinics</h3>
-              <p className="text-gray-600">
-                Practices keep their current workflow—verification and matching happen entirely on our side.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* How It Works Section */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <div className="text-center mb-16 fade-in">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-              How It Works
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Three simple steps to find the care you need, right when you need it.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            <div className="relative fade-in">
-              <div className="absolute -left-2 sm:-left-4 -top-2 sm:-top-4 w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-full flex items-center justify-center text-lg sm:text-2xl font-bold text-white">1</div>
-              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
-                <h3 className="text-lg sm:text-xl font-semibold mb-3">Input Your Needs</h3>
-                <p className="text-gray-600">
-                  Enter your ZIP code, insurance details, and preferred time window.
-                </p>
+        <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="fade-in">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                The Problem
+              </h2>
+              <h3 className="text-3xl sm:text-4xl font-light text-gray-900 mb-6 leading-tight">
+                Healthcare scheduling is <span className="font-medium">broken</span>
+              </h3>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-3">
+                  <Clock size={20} className="text-red-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">45+ minutes per appointment</p>
+                    <p className="text-gray-600 text-sm">Endless phone calls and hold times</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone size={20} className="text-red-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">Outdated information</p>
+                    <p className="text-gray-600 text-sm">Provider directories with wrong details</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Shield size={20} className="text-red-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">Insurance confusion</p>
+                    <p className="text-gray-600 text-sm">Find out coverage after booking</p>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="relative fade-in delay-100">
-              <div className="absolute -left-4 -top-4 w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-2xl font-bold text-white">2</div>
-              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
-                <h3 className="text-xl font-semibold mb-3">AI Verification</h3>
-                <p className="text-gray-600">
-                  Our system contacts providers in real-time to confirm available slots.
-                </p>
-              </div>
-            </div>
-            
-            <div className="relative fade-in delay-200">
-              <div className="absolute -left-4 -top-4 w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-2xl font-bold text-white">3</div>
-              <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
-                <h3 className="text-xl font-semibold mb-3">Book Instantly</h3>
-                <p className="text-gray-600">
-                  Choose from verified openings and secure your appointment right away.
-                </p>
+            <div className="fade-in delay-200">
+              <h2 className="text-sm font-semibold text-primary-600 uppercase tracking-wider mb-4">
+                Our Solution
+              </h2>
+              <h3 className="text-3xl sm:text-4xl font-light text-gray-900 mb-6 leading-tight">
+                AI that works <span className="font-medium">for you</span>
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle size={20} className="text-green-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">Real-time verification</p>
+                    <p className="text-gray-600 text-sm">AI calls providers to confirm availability</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle size={20} className="text-green-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">Instant insurance check</p>
+                    <p className="text-gray-600 text-sm">Know your coverage before booking</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle size={20} className="text-green-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-900">One-click booking</p>
+                    <p className="text-gray-600 text-sm">Secure your appointment instantly</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* How it works - Apple-style process */}
       <section className="py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 fade-in items-start">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary-100 rounded-full flex items-center justify-center">
-                <Stethoscope className="w-8 h-8 text-primary-600" />
+        <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+          <div className="text-center mb-16 fade-in">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+              How it works
+            </h2>
+            <h3 className="text-3xl sm:text-5xl font-light text-gray-900 leading-tight">
+              Three steps to better healthcare
+            </h3>
+          </div>
+          
+          <div className="grid lg:grid-cols-3 gap-12">
+            <div className="text-center fade-in">
+              <div className="w-16 h-16 mx-auto mb-6 bg-blue-50 rounded-2xl flex items-center justify-center">
+                <Search className="w-8 h-8 text-blue-600" />
               </div>
-              <div className="text-4xl sm:text-5xl font-bold text-primary-600 mb-3">100k+</div>
-              <p className="text-gray-600 text-base sm:text-lg">Healthcare Providers</p>
+              <div className="text-sm font-semibold text-gray-400 mb-2">01</div>
+              <h4 className="text-xl font-medium text-gray-900 mb-3">Tell us what you need</h4>
+              <p className="text-gray-600 leading-relaxed">Enter your location, insurance, and the type of care you're looking for.</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary-100 rounded-full flex items-center justify-center">
-                <Timer className="w-8 h-8 text-primary-600" />
+            
+            <div className="text-center fade-in delay-100">
+              <div className="w-16 h-16 mx-auto mb-6 bg-purple-50 rounded-2xl flex items-center justify-center">
+                <Zap className="w-8 h-8 text-purple-600" />
               </div>
-              <div className="text-5xl font-bold text-primary-600 mb-2">&lt;30s</div>
-              <p className="text-gray-600">Average Search Time</p>
+              <div className="text-sm font-semibold text-gray-400 mb-2">02</div>
+              <h4 className="text-xl font-medium text-gray-900 mb-3">AI finds real availability</h4>
+              <p className="text-gray-600 leading-relaxed">Our system contacts providers in real-time to verify open appointments.</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary-100 rounded-full flex items-center justify-center">
-                <Activity className="w-8 h-8 text-primary-600" />
+            
+            <div className="text-center fade-in delay-200">
+              <div className="w-16 h-16 mx-auto mb-6 bg-green-50 rounded-2xl flex items-center justify-center">
+                <Calendar className="w-8 h-8 text-green-600" />
               </div>
-              <div className="text-5xl font-bold text-primary-600 mb-2">95%</div>
-              <p className="text-gray-600">Success Rate</p>
+              <div className="text-sm font-semibold text-gray-400 mb-2">03</div>
+              <h4 className="text-xl font-medium text-gray-900 mb-3">Book instantly</h4>
+              <p className="text-gray-600 leading-relaxed">Choose your preferred time and confirm your appointment with one click.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary-900 to-primary-800 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: 'url("https://images.pexels.com/photos/3846035/pexels-photo-3846035.jpeg")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        />
+      {/* Trust indicators */}
+      <section className="py-24 bg-gray-50">
+        <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
+          <div className="text-center mb-16 fade-in">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+              Built for trust
+            </h2>
+            <h3 className="text-3xl sm:text-4xl font-light text-gray-900 leading-tight">
+              Healthcare-grade security and reliability
+            </h3>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center fade-in">
+              <div className="w-16 h-16 mx-auto mb-6 bg-green-50 rounded-2xl flex items-center justify-center">
+                <Shield size={32} className="text-green-600" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">HIPAA Compliant</h4>
+              <p className="text-gray-600">Your health information is protected with enterprise-grade security.</p>
+            </div>
+            
+            <div className="text-center fade-in delay-100">
+              <div className="w-16 h-16 mx-auto mb-6 bg-blue-50 rounded-2xl flex items-center justify-center">
+                <Award size={32} className="text-blue-600" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">Verified Providers</h4>
+              <p className="text-gray-600">All healthcare providers are licensed and verified through official databases.</p>
+            </div>
+            
+            <div className="text-center fade-in delay-200">
+              <div className="w-16 h-16 mx-auto mb-6 bg-purple-50 rounded-2xl flex items-center justify-center">
+                <Heart size={32} className="text-purple-600" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">Patient-First</h4>
+              <p className="text-gray-600">Designed by patients, for patients. Your care experience comes first.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats - Minimal presentation */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6 lg:px-8 max-w-4xl">
+          <div className="grid md:grid-cols-3 gap-12 text-center fade-in">
+            <div>
+              <div className="text-5xl font-light text-gray-900 mb-2">30s</div>
+              <p className="text-gray-600">Average booking time</p>
+            </div>
+            <div>
+              <div className="text-5xl font-light text-gray-900 mb-2">95%</div>
+              <p className="text-gray-600">Success rate</p>
+            </div>
+            <div>
+              <div className="text-5xl font-light text-gray-900 mb-2">50K+</div>
+              <p className="text-gray-600">Verified providers</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA - Apple-style */}
+      <section className="py-32 bg-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800" />
         
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative">
-          <div className="max-w-3xl mx-auto text-center fade-in">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              Ready to Transform Your Healthcare Search?
+        <div className="container mx-auto px-6 lg:px-8 max-w-4xl relative">
+          <div className="text-center fade-in">
+            <h2 className="text-4xl sm:text-5xl font-light text-white mb-6 leading-tight">
+              Ready to experience
+              <span className="block font-medium">healthcare scheduling reimagined?</span>
             </h2>
-            <p className="text-lg sm:text-xl text-white/80 mb-8">
-              Join thousands of users who have already discovered a better way to 
-              find healthcare providers.
+            <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+              Join thousands who've already discovered a better way to access healthcare.
             </p>
             <Link 
               href="/search" 
-              className="inline-flex items-center justify-center bg-white text-primary-600 px-8 py-4 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 group"
+              className="group inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 text-lg"
             >
-              Get Started Now
-              <ArrowRight size={16} className="ml-2 transform group-hover:translate-x-1 transition-transform" />
+              Start Your Search
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
