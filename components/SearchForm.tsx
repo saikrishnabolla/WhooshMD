@@ -8,13 +8,16 @@ import { getCurrentLocation, getPostalCodeFromCoordinates } from '../services/ap
 interface SearchFormProps {
   onSearch: (params: SearchParams) => void;
   isLoading: boolean;
+  initialParams?: SearchParams;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) => {
-  const [searchParams, setSearchParams] = useState<SearchParams>({
-    version: '2.1',
-    limit: 50,
-  });
+const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialParams }) => {
+  const [searchParams, setSearchParams] = useState<SearchParams>(
+    initialParams || {
+      version: '2.1',
+      limit: 50,
+    }
+  );
   const [advancedMode, setAdvancedMode] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
   const [providerName, setProviderName] = useState('');
@@ -113,6 +116,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) => {
       setGettingLocation(false);
     }
   };
+
+  // Update search params when initial params change
+  useEffect(() => {
+    if (initialParams) {
+      setSearchParams(initialParams);
+    }
+  }, [initialParams]);
 
   // Update provider name display when enumeration type changes
   useEffect(() => {

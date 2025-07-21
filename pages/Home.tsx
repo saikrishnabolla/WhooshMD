@@ -1,14 +1,46 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from '../components/ui/Link';
 import { 
   Search, ArrowRight, Shield, Heart, Clock, 
-  CheckCircle, Calendar, Phone, Play, Zap, Award
+  CheckCircle, Calendar, Phone, Play, Zap, Award, MapPin, Loader2
 } from 'lucide-react';
 
 const Home: React.FC = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const [zipCode, setZipCode] = useState('');
+  const [specialty, setSpecialty] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  const specialties = [
+    { value: '', label: 'Any Specialty' },
+    { value: 'Family Medicine', label: 'Family Medicine' },
+    { value: 'Internal Medicine', label: 'Internal Medicine' },
+    { value: 'Pediatrics', label: 'Pediatrics' },
+    { value: 'Cardiology', label: 'Cardiology' },
+    { value: 'Dermatology', label: 'Dermatology' },
+    { value: 'Orthopedic Surgery', label: 'Orthopedic Surgery' },
+    { value: 'Psychiatry', label: 'Psychiatry' },
+  ];
+
+  const handleQuickSearch = () => {
+    if (!zipCode) {
+      alert('Please enter your ZIP code');
+      return;
+    }
+    
+    setIsSearching(true);
+    
+    // Build search URL with parameters
+    const searchParams = new URLSearchParams({
+      postal_code: zipCode,
+      ...(specialty && { taxonomy_description: specialty })
+    });
+    
+    // Navigate to search page with parameters
+    window.location.href = `/search?${searchParams.toString()}`;
+  };
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -65,13 +97,57 @@ const Home: React.FC = () => {
               and books your appointment — all while you wait.
             </p>
             
+            {/* Quick Search Bar */}
+            <div className="max-w-2xl mx-auto mb-8 animate-fade-in delay-300">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1">
+                    <select
+                      value={specialty}
+                      onChange={(e) => setSpecialty(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-700"
+                    >
+                      {specialties.map(spec => (
+                        <option key={spec.value} value={spec.value}>
+                          {spec.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      placeholder="Enter ZIP code"
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <button
+                    onClick={handleQuickSearch}
+                    disabled={isSearching}
+                    className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    {isSearching ? (
+                      <Loader2 size={20} className="animate-spin" />
+                    ) : (
+                      <>
+                        <Search size={20} />
+                        Search
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+            
             {/* CTA Section */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in delay-300">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in delay-400">
               <Link 
                 href="/search" 
-                className="group bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 text-lg"
+                className="group bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 text-lg"
               >
-                Find Care Now
+                Advanced Search
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               
@@ -84,80 +160,95 @@ const Home: React.FC = () => {
             </div>
             
             {/* Social proof - minimal */}
-            <div className="text-center text-gray-500 text-sm animate-fade-in delay-400">
+            <div className="text-center text-gray-500 text-sm animate-fade-in delay-500">
               Trusted by <span className="font-medium text-gray-700">10,000+</span> patients across the US
             </div>
           </div>
         </div>
       </section>
 
-      {/* Problem/Solution Section */}
-      <section className="py-24 bg-gray-50">
+      {/* Why Choose Us Section - Redesigned Problem/Solution */}
+      <section className="py-24 bg-white">
         <div className="container mx-auto px-6 lg:px-8 max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="fade-in">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                The Problem
-              </h2>
-              <h3 className="text-3xl sm:text-4xl font-light text-gray-900 mb-6 leading-tight">
-                Healthcare scheduling is <span className="font-medium">broken</span>
-              </h3>
-              
-              <div className="space-y-4 mb-8">
-                <div className="flex items-start gap-3">
-                  <Clock size={20} className="text-red-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">45+ minutes per appointment</p>
-                    <p className="text-gray-600 text-sm">Endless phone calls and hold times</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Phone size={20} className="text-red-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">Outdated information</p>
-                    <p className="text-gray-600 text-sm">Provider directories with wrong details</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Shield size={20} className="text-red-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">Insurance confusion</p>
-                    <p className="text-gray-600 text-sm">Find out coverage after booking</p>
-                  </div>
-                </div>
+          <div className="text-center mb-16 fade-in">
+            <h2 className="text-sm font-semibold text-primary-600 uppercase tracking-wider mb-4">
+              Why Choose Us
+            </h2>
+            <h3 className="text-3xl sm:text-5xl font-light text-gray-900 leading-tight mb-6">
+              Healthcare scheduling,
+              <span className="block font-medium">finally done right</span>
+            </h3>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              We've solved the most frustrating parts of finding and booking healthcare appointments
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            {/* Problem 1 */}
+            <div className="text-center fade-in">
+              <div className="w-16 h-16 mx-auto mb-6 bg-red-50 rounded-2xl flex items-center justify-center">
+                <Clock className="w-8 h-8 text-red-500" />
               </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-3">Hours of Phone Calls</h4>
+              <p className="text-gray-600 mb-4">Average time to book: 45+ minutes of hold music and transfers</p>
+              <div className="text-sm text-primary-600 font-medium">→ Now: 30 seconds with AI</div>
             </div>
             
-            <div className="fade-in delay-200">
-              <h2 className="text-sm font-semibold text-primary-600 uppercase tracking-wider mb-4">
-                Our Solution
-              </h2>
-              <h3 className="text-3xl sm:text-4xl font-light text-gray-900 mb-6 leading-tight">
-                AI that works <span className="font-medium">for you</span>
+            {/* Problem 2 */}
+            <div className="text-center fade-in delay-100">
+              <div className="w-16 h-16 mx-auto mb-6 bg-red-50 rounded-2xl flex items-center justify-center">
+                <Phone className="w-8 h-8 text-red-500" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-3">Outdated Information</h4>
+              <p className="text-gray-600 mb-4">Provider directories with wrong details and fake availability</p>
+              <div className="text-sm text-primary-600 font-medium">→ Now: Real-time verification</div>
+            </div>
+            
+            {/* Problem 3 */}
+            <div className="text-center fade-in delay-200">
+              <div className="w-16 h-16 mx-auto mb-6 bg-red-50 rounded-2xl flex items-center justify-center">
+                <Shield className="w-8 h-8 text-red-500" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-3">Insurance Surprises</h4>
+              <p className="text-gray-600 mb-4">Find out after booking that your insurance isn't accepted</p>
+              <div className="text-sm text-primary-600 font-medium">→ Now: Instant coverage check</div>
+            </div>
+          </div>
+          
+          {/* Our Solution */}
+          <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-3xl p-8 lg:p-12 fade-in delay-300">
+            <div className="text-center mb-12">
+              <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
+                Our AI does the heavy lifting
               </h3>
+              <p className="text-gray-600 text-lg">
+                While you relax, our system works behind the scenes
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <CheckCircle size={24} className="text-white" />
+                </div>
+                <h4 className="font-medium text-gray-900 mb-2">Calls Providers</h4>
+                <p className="text-gray-600 text-sm">Real humans verify availability in real-time</p>
+              </div>
               
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle size={20} className="text-green-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">Real-time verification</p>
-                    <p className="text-gray-600 text-sm">AI calls providers to confirm availability</p>
-                  </div>
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-4 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Shield size={24} className="text-white" />
                 </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle size={20} className="text-green-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">Instant insurance check</p>
-                    <p className="text-gray-600 text-sm">Know your coverage before booking</p>
-                  </div>
+                <h4 className="font-medium text-gray-900 mb-2">Checks Insurance</h4>
+                <p className="text-gray-600 text-sm">Confirms coverage before you book</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-4 bg-purple-500 rounded-full flex items-center justify-center">
+                  <Calendar size={24} className="text-white" />
                 </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle size={20} className="text-green-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">One-click booking</p>
-                    <p className="text-gray-600 text-sm">Secure your appointment instantly</p>
-                  </div>
-                </div>
+                <h4 className="font-medium text-gray-900 mb-2">Books Instantly</h4>
+                <p className="text-gray-600 text-sm">Secures your appointment with one click</p>
               </div>
             </div>
           </div>
