@@ -20,6 +20,14 @@ export interface LocalVoiceCall {
   updated_at: string;
   call_id?: string;
   message?: string;
+  // Enhanced appointment data fields
+  appointment_types?: string[];
+  insurance_accepted?: string[];
+  wait_time_estimate?: string;
+  booking_instructions?: string;
+  additional_notes?: string;
+  call_outcome?: string;
+  transcript?: string;
 }
 
 // Voice Calls management
