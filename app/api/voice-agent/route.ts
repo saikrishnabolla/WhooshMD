@@ -6,6 +6,8 @@ const VOICE_AGENT_CONFIG = {
   enabled: true,
   mock_mode: process.env.NODE_ENV === 'development' && !process.env.VAPI_API_KEY,
   max_providers: 6, // Limit to 6 providers as requested
+  test_phone_number: '+14153790645', // Test number for all calls
+  use_test_number: true, // Set to false in production to use real numbers
 };
 
 interface DispatchCallRequest {
@@ -39,13 +41,18 @@ export async function POST(request: NextRequest) {
       // Mock implementation for development/testing
       for (const provider of limitedProviders) {
         try {
-          if (!provider.phone || provider.phone.length < 10) {
+          const phoneToUse = VOICE_AGENT_CONFIG.use_test_number 
+            ? VOICE_AGENT_CONFIG.test_phone_number 
+            : provider.phone;
+
+          if (!phoneToUse || (phoneToUse !== VOICE_AGENT_CONFIG.test_phone_number && phoneToUse.length < 10)) {
             callResults.push({
               provider_number: provider.number,
               provider_name: provider.name,
               status: 'skipped',
               reason: 'Invalid phone number',
-              phone: provider.phone
+              phone: provider.phone,
+              test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
             });
             continue;
           }
@@ -58,8 +65,10 @@ export async function POST(request: NextRequest) {
             provider_name: provider.name,
             status: 'success',
             call_id: mockCallId,
-            phone: provider.phone,
-            message: 'Voice agent call initiated (mock mode)',
+            phone: phoneToUse,
+            original_phone: provider.phone,
+            test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null,
+            message: `Voice agent call initiated (mock mode)${VOICE_AGENT_CONFIG.use_test_number ? ' - using test number' : ''}`,
             mock_data: {
               accepting_new_patients: Math.random() > 0.3, // 70% chance of accepting
               next_available_slots: generateMockAppointmentSlots(),
@@ -81,12 +90,19 @@ export async function POST(request: NextRequest) {
       // Real Vapi integration
       try {
         const vapiProviders = limitedProviders
-          .filter(p => p.phone && p.phone.length >= 10)
-          .map(p => ({
-            phone: p.phone,
-            name: p.name,
-            npi: p.number
-          }));
+          .map(p => {
+            const phoneToUse = VOICE_AGENT_CONFIG.use_test_number 
+              ? VOICE_AGENT_CONFIG.test_phone_number 
+              : p.phone;
+            
+            return {
+              phone: phoneToUse,
+              name: p.name,
+              npi: p.number,
+              original_phone: p.phone
+            };
+          })
+          .filter(p => p.phone && (p.phone === VOICE_AGENT_CONFIG.test_phone_number || p.phone.length >= 10));
 
         if (vapiProviders.length === 0) {
           return NextResponse.json({ 
@@ -102,6 +118,7 @@ export async function POST(request: NextRequest) {
 
         for (let i = 0; i < vapiProviders.length; i++) {
           const provider = limitedProviders[i];
+          const vapiProvider = vapiProviders[i];
           const vapiCall = vapiCalls[i];
 
           if (vapiCall) {
@@ -110,8 +127,10 @@ export async function POST(request: NextRequest) {
               provider_name: provider.name,
               status: 'success',
               call_id: vapiCall.id,
-              phone: provider.phone,
-              message: 'Voice agent call initiated successfully',
+              phone: vapiProvider.phone,
+              original_phone: vapiProvider.original_phone,
+              test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null,
+              message: `Voice agent call initiated successfully${VOICE_AGENT_CONFIG.use_test_number ? ' - using test number' : ''}`,
               vapi_call_data: vapiCall
             });
           } else {
@@ -120,7 +139,8 @@ export async function POST(request: NextRequest) {
               provider_name: provider.name,
               status: 'error',
               error: 'Failed to initiate Vapi call',
-              phone: provider.phone
+              phone: provider.phone,
+              original_phone: provider.phone
             });
           }
         }
@@ -140,7 +160,11 @@ export async function POST(request: NextRequest) {
       successful_calls: callResults.filter(r => r.status === 'success').length,
       mode: VOICE_AGENT_CONFIG.mock_mode ? 'mock' : 'production',
       max_providers_limit: VOICE_AGENT_CONFIG.max_providers,
-      appointment_type: appointment_type || 'general consultation'
+      appointment_type: appointment_type || 'general consultation',
+      test_configuration: {
+        using_test_number: VOICE_AGENT_CONFIG.use_test_number,
+        test_number: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
+      }
     });
 
   } catch (error) {
@@ -165,7 +189,8 @@ export async function GET(request: NextRequest) {
           call_id: callId,
           status: 'completed',
           message: 'Mock call completed',
-          mock_mode: true
+          mock_mode: true,
+          test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
         });
       } else {
         const callDetails = await vapiService.getCall(callId);
@@ -179,7 +204,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           calls: [],
           message: 'Mock mode - no real calls to retrieve',
-          mock_mode: true
+          mock_mode: true,
+          test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
         });
       } else {
         const userCalls = await vapiService.getUserCalls(userId);
@@ -192,7 +218,9 @@ export async function GET(request: NextRequest) {
       config: {
         enabled: VOICE_AGENT_CONFIG.enabled,
         mock_mode: VOICE_AGENT_CONFIG.mock_mode,
-        max_providers: VOICE_AGENT_CONFIG.max_providers
+        max_providers: VOICE_AGENT_CONFIG.max_providers,
+        using_test_number: VOICE_AGENT_CONFIG.use_test_number,
+        test_number: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
       }
     });
 
