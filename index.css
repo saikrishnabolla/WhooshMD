@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet styles */
+@import 'leaflet/dist/leaflet.css';
+
 /* Base styles */
 body {
   scroll-behavior: smooth;
@@ -189,4 +192,23 @@ h1, h2, h3, h4, h5, h6 {
 /* Focus styles */
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+/* Map styles */
+.leaflet-container {
+  border-radius: 1rem;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.provider-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 0;
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, X, Loader2 } from 'lucide-react';
+import { Search, MapPin, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { SearchParams } from '../types';
 import { getCurrentLocation, getPostalCodeFromCoordinates } from '../services/api';
 
@@ -89,7 +89,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
   const handleClear = () => {
     setSearchParams({
       version: '2.1',
-      limit: 20,
+      limit: 50,
     });
     setProviderName('');
   };
@@ -136,157 +136,195 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
   }, [searchParams.enumeration_type, searchParams.organization_name, searchParams.first_name, searchParams.last_name]);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 transition-all duration-300">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 transition-all duration-300">
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <p className="text-sm text-gray-600">
-            Search by provider name (optional) or select a specialty to find healthcare providers near you.
-          </p>
-        </div>
-        
-        <div className="space-y-4">
-          {/* First Row - Provider Name and Type */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <label htmlFor="provider_name" className="block text-sm font-medium text-gray-700 mb-1">
-                Provider Name (Optional)
-              </label>
+        {/* Main Search Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
+          {/* Specialty */}
+          <div className="lg:col-span-4">
+            <label htmlFor="taxonomy_description" className="block text-sm font-medium text-gray-700 mb-2">
+              Specialty
+            </label>
+            <select
+              id="taxonomy_description"
+              name="taxonomy_description"
+              value={searchParams.taxonomy_description || ''}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
+            >
+              {specialties.map(specialty => (
+                <option key={specialty.value} value={specialty.value}>
+                  {specialty.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Postal Code */}
+          <div className="lg:col-span-3">
+            <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-2">
+              ZIP Code
+            </label>
+            <div className="flex">
               <input
                 type="text"
-                id="provider_name"
-                value={providerName}
-                onChange={handleProviderNameChange}
-                placeholder={searchParams.enumeration_type === 'NPI-2' ? 
-                  "Organization name" : 
-                  "First and last name"}
-                className="w-full h-10 px-3 sm:px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
-                aria-label="Provider or organization name"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="enumeration_type" className="block text-sm font-medium text-gray-700 mb-1">
-                Provider Type
-              </label>
-              <select
-                id="enumeration_type"
-                name="enumeration_type"
-                value={searchParams.enumeration_type || ''}
+                id="postal_code"
+                name="postal_code"
+                value={searchParams.postal_code || ''}
                 onChange={handleInputChange}
-                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
+                placeholder="Enter ZIP code"
+                className="w-full px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              />
+              <button 
+                type="button"
+                onClick={handleUseCurrentLocation}
+                disabled={gettingLocation}
+                className="px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-xl border border-l-0 border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 flex-shrink-0"
+                aria-label="Use current location"
               >
-                <option value="">All Types</option>
-                <option value="NPI-1">Individual</option>
-                <option value="NPI-2">Organization</option>
-              </select>
+                {gettingLocation ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <MapPin size={18} />
+                )}
+              </button>
             </div>
           </div>
           
-          {/* Second Row - Specialty, Results, and Location */}
-          <div className="grid grid-cols-1 gap-4">
-            {/* Mobile: Stack all fields vertically */}
-            <div className="block md:hidden space-y-4">
+          {/* Provider Name */}
+          <div className="lg:col-span-3">
+            <label htmlFor="provider_name" className="block text-sm font-medium text-gray-700 mb-2">
+              Provider Name (Optional)
+            </label>
+            <input
+              type="text"
+              id="provider_name"
+              value={providerName}
+              onChange={handleProviderNameChange}
+              placeholder={searchParams.enumeration_type === 'NPI-2' ? 
+                "Organization name" : 
+                "First and last name"}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              aria-label="Provider or organization name"
+            />
+          </div>
+          
+          {/* Search Button */}
+          <div className="lg:col-span-2 flex items-end">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Search size={18} />
+                  Search
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+        
+        {/* Advanced Options Toggle */}
+        <div className="flex items-center justify-between mb-4">
+          <button
+            type="button"
+            onClick={() => setAdvancedMode(!advancedMode)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
+          >
+            {advancedMode ? (
+              <>
+                <ChevronUp size={16} />
+                Hide Advanced Options
+              </>
+            ) : (
+              <>
+                <ChevronDown size={16} />
+                Show Advanced Options
+              </>
+            )}
+          </button>
+          
+          <button
+            type="button"
+            onClick={handleClear}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
+          >
+            <X size={16} />
+            Clear All
+          </button>
+        </div>
+        
+        {/* Advanced Options */}
+        {advancedMode && (
+          <div className="bg-gray-50 rounded-xl p-6 space-y-4 border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="taxonomy_description_mobile" className="block text-sm font-medium text-gray-700 mb-1">
-                  Specialty
+                <label htmlFor="enumeration_type" className="block text-sm font-medium text-gray-700 mb-2">
+                  Provider Type
                 </label>
                 <select
-                  id="taxonomy_description_mobile"
-                  name="taxonomy_description"
-                  value={searchParams.taxonomy_description || ''}
+                  id="enumeration_type"
+                  name="enumeration_type"
+                  value={searchParams.enumeration_type || ''}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
                 >
-                  {specialties.map(specialty => (
-                    <option key={specialty.value} value={specialty.value}>
-                      {specialty.label}
-                    </option>
-                  ))}
+                  <option value="">All Types</option>
+                  <option value="NPI-1">Individual</option>
+                  <option value="NPI-2">Organization</option>
                 </select>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="limit_mobile" className="block text-sm font-medium text-gray-700 mb-1">
-                    Results
-                  </label>
-                  <select
-                    id="limit_mobile"
-                    name="limit"
-                    value={searchParams.limit || 50}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-                  >
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                    <option value={200}>200</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label htmlFor="postal_code_mobile" className="block text-sm font-medium text-gray-700 mb-1">
-                    ZIP Code
-                  </label>
-                  <div className="flex">
-                    <input
-                      type="text"
-                      id="postal_code_mobile"
-                      name="postal_code"
-                      value={searchParams.postal_code || ''}
-                      onChange={handleInputChange}
-                      placeholder="ZIP"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-                    />
-                    <button 
-                      type="button"
-                      onClick={handleUseCurrentLocation}
-                      disabled={gettingLocation}
-                      className="px-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md border border-l-0 border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 flex-shrink-0"
-                      aria-label="Use current location"
-                    >
-                      {gettingLocation ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <MapPin size={16} />
-                      )}
-                    </button>
-                  </div>
-                </div>
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                  City
+                </label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={searchParams.city || ''}
+                  onChange={handleInputChange}
+                  placeholder="City name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+                  State
+                </label>
+                <input
+                  type="text"
+                  id="state"
+                  name="state"
+                  value={searchParams.state || ''}
+                  onChange={handleInputChange}
+                  placeholder="2-letter state code (e.g., CA)"
+                  maxLength={2}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 uppercase"
+                />
               </div>
             </div>
             
-            {/* Desktop: Horizontal layout */}
-            <div className="hidden md:grid md:grid-cols-4 gap-4">
+            <div className="flex items-center justify-between pt-4">
               <div>
-                <label htmlFor="taxonomy_description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Specialty
-                </label>
-                <select
-                  id="taxonomy_description"
-                  name="taxonomy_description"
-                  value={searchParams.taxonomy_description || ''}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base"
-                >
-                  {specialties.map(specialty => (
-                    <option key={specialty.value} value={specialty.value}>
-                      {specialty.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="limit" className="block text-sm font-medium text-gray-700 mb-1">
-                  Results
+                <label htmlFor="limit" className="block text-sm font-medium text-gray-700 mb-2">
+                  Results per page
                 </label>
                 <select
                   id="limit"
                   name="limit"
                   value={searchParams.limit || 50}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
                 >
                   <option value={20}>20</option>
                   <option value={50}>50</option>
@@ -294,121 +332,9 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
                   <option value={200}>200</option>
                 </select>
               </div>
-              
-              <div className="col-span-2">
-                <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">
-                  Postal Code
-                </label>
-                <div className="flex">
-                  <input
-                    type="text"
-                    id="postal_code"
-                    name="postal_code"
-                    value={searchParams.postal_code || ''}
-                    onChange={handleInputChange}
-                    placeholder="Enter ZIP code"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base"
-                  />
-                  <button 
-                    type="button"
-                    onClick={handleUseCurrentLocation}
-                    disabled={gettingLocation}
-                    className="px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md border border-l-0 border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 flex-shrink-0"
-                    aria-label="Use current location"
-                  >
-                    {gettingLocation ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <MapPin size={18} />
-                    )}
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
-          
-          {/* Advanced Options */}
-          {advancedMode && (
-            <div className="space-y-4 pt-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={searchParams.city || ''}
-                    onChange={handleInputChange}
-                    placeholder="City name"
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                    State
-                  </label>
-                  <input
-                    type="text"
-                    id="state"
-                    name="state"
-                    value={searchParams.state || ''}
-                    onChange={handleInputChange}
-                    placeholder="2-letter state code (e.g., CA)"
-                    maxLength={2}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-between items-center pt-2">
-            <button
-              type="button"
-              onClick={() => setAdvancedMode(!advancedMode)}
-              className="text-sm text-primary-600 hover:text-primary-800 focus:outline-none transition-colors order-2 sm:order-1"
-            >
-              {advancedMode ? 'Hide Advanced Options' : 'Show Advanced Options'}
-            </button>
-            
-            <div className="flex gap-2 w-full sm:w-auto order-1 sm:order-2">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors text-sm"
-              >
-                <span className="flex items-center justify-center">
-                  <X size={14} className="mr-1" />
-                  Clear
-                </span>
-              </button>
-              
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1 sm:flex-none px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors disabled:opacity-70 text-sm"
-              >
-                <span className="flex items-center justify-center">
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={14} className="mr-2 animate-spin" />
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <Search size={14} className="mr-2" />
-                      Search
-                    </>
-                  )}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </form>
     </div>
   );
