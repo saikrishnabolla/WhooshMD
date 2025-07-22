@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, MapPin, X, Loader2 } from 'lucide-react';
 import { SearchParams } from '../types';
 import { getCurrentLocation, getPostalCodeFromCoordinates } from '../services/api';
 
@@ -15,10 +15,9 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
   const [searchParams, setSearchParams] = useState<SearchParams>(
     initialParams || {
       version: '2.1',
-      limit: 50,
+      limit: 30,
     }
   );
-  const [advancedMode, setAdvancedMode] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
   const [providerName, setProviderName] = useState('');
   
@@ -48,25 +47,23 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
     const value = e.target.value;
     setProviderName(value);
     
-    // Parse the name and update search params
-    if (searchParams.enumeration_type === 'NPI-2') {
-      setSearchParams(prev => ({ ...prev, organization_name: value }));
+    // For provider name search, we'll treat it as organization name if it looks like one
+    // or split into first/last name for individuals
+    const nameParts = value.trim().split(' ');
+    if (nameParts.length === 1) {
+      setSearchParams(prev => ({ 
+        ...prev, 
+        last_name: nameParts[0],
+        first_name: '',
+        organization_name: nameParts[0] // Search both individual and organization
+      }));
     } else {
-      // For individuals, treat as last name if single word, or split first/last
-      const nameParts = value.trim().split(' ');
-      if (nameParts.length === 1) {
-        setSearchParams(prev => ({ 
-          ...prev, 
-          last_name: nameParts[0],
-          first_name: ''
-        }));
-      } else {
-        setSearchParams(prev => ({ 
-          ...prev, 
-          first_name: nameParts[0],
-          last_name: nameParts.slice(1).join(' ')
-        }));
-      }
+      setSearchParams(prev => ({ 
+        ...prev, 
+        first_name: nameParts[0],
+        last_name: nameParts.slice(1).join(' '),
+        organization_name: value // Also search as organization name
+      }));
     }
   };
 
@@ -89,7 +86,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
   const handleClear = () => {
     setSearchParams({
       version: '2.1',
-      limit: 50,
+      limit: 30,
     });
     setProviderName('');
   };
@@ -124,16 +121,18 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
     }
   }, [initialParams]);
 
-  // Update provider name display when enumeration type changes
+  // Update provider name display when search params change
   useEffect(() => {
-    if (searchParams.enumeration_type === 'NPI-2') {
-      setProviderName(searchParams.organization_name || '');
+    const firstName = searchParams.first_name || '';
+    const lastName = searchParams.last_name || '';
+    const orgName = searchParams.organization_name || '';
+    
+    if (orgName && !firstName && !lastName) {
+      setProviderName(orgName);
     } else {
-      const firstName = searchParams.first_name || '';
-      const lastName = searchParams.last_name || '';
       setProviderName([firstName, lastName].filter(Boolean).join(' '));
     }
-  }, [searchParams.enumeration_type, searchParams.organization_name, searchParams.first_name, searchParams.last_name]);
+  }, [searchParams.first_name, searchParams.last_name, searchParams.organization_name]);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 transition-all duration-300">
@@ -201,9 +200,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
               id="provider_name"
               value={providerName}
               onChange={handleProviderNameChange}
-              placeholder={searchParams.enumeration_type === 'NPI-2' ? 
-                "Organization name" : 
-                "First and last name"}
+              placeholder="Doctor or clinic name"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               aria-label="Provider or organization name"
             />
@@ -231,110 +228,50 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
           </div>
         </div>
         
-        {/* Advanced Options Toggle */}
-        <div className="flex items-center justify-between mb-4">
-          <button
-            type="button"
-            onClick={() => setAdvancedMode(!advancedMode)}
-            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
-          >
-            {advancedMode ? (
-              <>
-                <ChevronUp size={16} />
-                Hide Advanced Options
-              </>
-            ) : (
-              <>
-                <ChevronDown size={16} />
-                Show Advanced Options
-              </>
-            )}
-          </button>
-          
-          <button
-            type="button"
-            onClick={handleClear}
-            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
-          >
-            <X size={16} />
-            Clear All
-          </button>
-        </div>
-        
-        {/* Advanced Options */}
-        {advancedMode && (
-          <div className="bg-gray-50 rounded-xl p-6 space-y-4 border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="enumeration_type" className="block text-sm font-medium text-gray-700 mb-2">
-                  Provider Type
-                </label>
-                <select
-                  id="enumeration_type"
-                  name="enumeration_type"
-                  value={searchParams.enumeration_type || ''}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
-                >
-                  <option value="">All Types</option>
-                  <option value="NPI-1">Individual</option>
-                  <option value="NPI-2">Organization</option>
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                  City
-                </label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={searchParams.city || ''}
-                  onChange={handleInputChange}
-                  placeholder="City name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                  State
-                </label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  value={searchParams.state || ''}
-                  onChange={handleInputChange}
-                  placeholder="2-letter state code (e.g., CA)"
-                  maxLength={2}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 uppercase"
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between pt-4">
-              <div>
-                <label htmlFor="limit" className="block text-sm font-medium text-gray-700 mb-2">
-                  Results per page
-                </label>
-                <select
-                  id="limit"
-                  name="limit"
-                  value={searchParams.limit || 50}
-                  onChange={handleInputChange}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
-                >
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={200}>200</option>
-                </select>
-              </div>
-            </div>
+        {/* Optional Location Fields Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+              City (Optional)
+            </label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              value={searchParams.city || ''}
+              onChange={handleInputChange}
+              placeholder="City name"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+            />
           </div>
-        )}
+          
+          <div>
+            <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+              State (Optional)
+            </label>
+            <input
+              type="text"
+              id="state"
+              name="state"
+              value={searchParams.state || ''}
+              onChange={handleInputChange}
+              placeholder="State code (e.g., CA)"
+              maxLength={2}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 uppercase"
+            />
+          </div>
+          
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={handleClear}
+              className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors px-4 py-3 border border-gray-300 rounded-xl hover:border-red-300 hover:bg-red-50"
+            >
+              <X size={16} />
+              Clear All
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );

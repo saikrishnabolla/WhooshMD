@@ -1,11 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Grid3X3, Map, Filter, MapPin, Search as SearchIcon, Loader2 } from 'lucide-react';
+import { Phone, Search as SearchIcon, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import SearchForm from '../components/SearchForm';
 import ProviderCard from '../components/ProviderCard';
 import ProviderDetail from '../components/ProviderDetail';
-import ProviderMap from '../components/ProviderMap';
 import EmptyState from '../components/EmptyState';
 import VoiceCallModal from '../components/VoiceCallModal';
 import SearchHistory from '../components/SearchHistory';
@@ -14,10 +13,13 @@ import { searchProviders } from '../services/api';
 import { addSearchHistory } from '../services/storage';
 import { v4 as uuidv4 } from 'uuid';
 
+const RESULTS_PER_PAGE = 30;
+const MAX_PAGES = 3;
+
 const Search: React.FC = () => {
   const [searchParams, setSearchParams] = useState<SearchParams>({
     version: '2.1',
-    limit: 20,
+    limit: RESULTS_PER_PAGE,
   });
   const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,8 +28,10 @@ const Search: React.FC = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [selectedProviders, setSelectedProviders] = useState<Provider[]>([]);
   const [showVoiceCallModal, setShowVoiceCallModal] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
-  const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allResults, setAllResults] = useState<Provider[]>([]);
+  const [totalResults, setTotalResults] = useState(0);
+  const [originalSearchParams, setOriginalSearchParams] = useState<SearchParams | null>(null);
 
   // Handle URL parameters on component mount
   useEffect(() => {
@@ -38,7 +42,7 @@ const Search: React.FC = () => {
     if (postal_code || taxonomy_description) {
       const params: SearchParams = {
         version: '2.1',
-        limit: 50,
+        limit: RESULTS_PER_PAGE,
         ...(postal_code && { postal_code }),
         ...(taxonomy_description && { taxonomy_description })
       };
@@ -48,30 +52,66 @@ const Search: React.FC = () => {
     }
   }, []);
 
-  const handleSearch = async (params: SearchParams) => {
+  const handleSearch = async (params: SearchParams, page: number = 1) => {
     setIsLoading(true);
     setError(null);
-    setSearchResponse(null);
-    setSearchPerformed(true);
+    setCurrentPage(page);
+    
+    // Calculate skip value for pagination
+    const skip = (page - 1) * RESULTS_PER_PAGE;
+    const searchParamsWithPagination = {
+      ...params,
+      limit: RESULTS_PER_PAGE,
+      skip,
+    };
     
     try {
-      const response = await searchProviders(params);
-      setSearchResponse(response);
+      const response = await searchProviders(searchParamsWithPagination);
       
-      // Add to search history
-      if (response.result_count > 0) {
-        const historyItem: SearchHistoryItem = {
-          id: uuidv4(),
-          params,
-          timestamp: Date.now(),
-          resultCount: response.result_count,
-        };
-        addSearchHistory(historyItem);
+      if (page === 1) {
+        // First page - reset everything
+        setAllResults(response.results);
+        setTotalResults(response.result_count);
+        setOriginalSearchParams(params);
+        setSearchResponse(response);
+        setSearchPerformed(true);
+        
+        // Add to search history only for new searches
+        if (response.result_count > 0) {
+          const historyItem: SearchHistoryItem = {
+            id: uuidv4(),
+            params,
+            timestamp: Date.now(),
+            resultCount: response.result_count,
+          };
+          addSearchHistory(historyItem);
+        }
+      } else {
+        // Subsequent pages - append results
+        setAllResults(prev => [...prev, ...response.results]);
+        setSearchResponse({
+          result_count: totalResults,
+          results: [...allResults, ...response.results]
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while searching for providers');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleNewSearch = (params: SearchParams) => {
+    setAllResults([]);
+    setCurrentPage(1);
+    setSearchParams(params);
+    handleSearch(params, 1);
+  };
+
+  const handleLoadMore = () => {
+    if (currentPage < MAX_PAGES && originalSearchParams) {
+      const nextPage = currentPage + 1;
+      handleSearch(originalSearchParams, nextPage);
     }
   };
 
@@ -85,7 +125,7 @@ const Search: React.FC = () => {
 
   const handleSelectHistory = (params: SearchParams) => {
     setSearchParams(params);
-    handleSearch(params);
+    handleNewSearch(params);
   };
 
   const toggleProviderSelection = (provider: Provider) => {
@@ -116,6 +156,9 @@ const Search: React.FC = () => {
     return parts.join(' ');
   };
 
+  const canLoadMore = currentPage < MAX_PAGES && allResults.length < totalResults;
+  const hasMoreResults = totalResults > allResults.length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       {/* Hero Section - Minimal and clean */}
@@ -133,7 +176,7 @@ const Search: React.FC = () => {
           
           <div className="max-w-4xl mx-auto">
             <SearchForm 
-              onSearch={handleSearch} 
+              onSearch={handleNewSearch} 
               isLoading={isLoading}
               initialParams={searchParams}
             />
@@ -150,7 +193,7 @@ const Search: React.FC = () => {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
+        {isLoading && currentPage === 1 && (
           <div className="text-center py-16">
             <div className="inline-flex items-center gap-3 bg-white rounded-2xl px-6 py-4 shadow-lg">
               <Loader2 className="w-6 h-6 text-primary-600 animate-spin" />
@@ -178,56 +221,34 @@ const Search: React.FC = () => {
         )}
 
         {/* No Results */}
-        {searchPerformed && searchResponse && searchResponse.result_count === 0 && !isLoading && (
+        {searchPerformed && totalResults === 0 && !isLoading && (
           <EmptyState type="no-results" />
         )}
 
         {/* Results */}
-        {searchResponse && searchResponse.result_count > 0 && !isLoading && (
+        {totalResults > 0 && !isLoading && (
           <div>
             {/* Results Header */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-light text-gray-900 mb-2">
-                    {searchResponse.result_count.toLocaleString()} 
-                    {searchResponse.result_count === 1 ? ' Provider' : ' Providers'} Found
+                    {totalResults.toLocaleString()} 
+                    {totalResults === 1 ? ' Provider' : ' Providers'} Found
                   </h2>
                   {getSearchSummary() && (
                     <p className="text-gray-600 flex items-center gap-2">
-                      <MapPin size={16} />
+                      <SearchIcon size={16} />
                       {getSearchSummary()}
                     </p>
                   )}
+                  <p className="text-sm text-gray-500 mt-1">
+                    Showing {allResults.length} of {totalResults} results
+                    {currentPage > 1 && ` (Page ${currentPage} of ${Math.min(MAX_PAGES, Math.ceil(totalResults / RESULTS_PER_PAGE))})`}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center bg-gray-100 rounded-xl p-1">
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                        viewMode === 'grid'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <Grid3X3 size={16} />
-                      Grid
-                    </button>
-                    <button
-                      onClick={() => setViewMode('map')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                        viewMode === 'map'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <Map size={16} />
-                      Map
-                    </button>
-                  </div>
-
                   {/* Voice Call Button */}
                   {selectedProviders.length > 0 && (
                     <button
@@ -242,78 +263,61 @@ const Search: React.FC = () => {
               </div>
             </div>
 
-            {/* Results Content */}
-            <div className="relative">
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {searchResponse.results.map((provider) => (
-                    <div key={provider.number} className="relative">
-                      <ProviderCard 
-                        provider={provider} 
-                        onViewDetails={handleViewDetails}
-                      />
-                      <button
-                        onClick={() => toggleProviderSelection(provider)}
-                        className={`absolute top-4 right-4 p-2.5 rounded-full transition-all shadow-lg ${
-                          selectedProviders.some(p => p.number === provider.number)
-                            ? 'bg-primary-600 text-white scale-110'
-                            : 'bg-white text-gray-400 hover:text-primary-600 hover:bg-primary-50'
-                        }`}
-                      >
-                        <Phone size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <ProviderMap
-                    providers={searchResponse.results}
-                    onProviderSelect={handleViewDetails}
-                    className="h-[600px]"
+            {/* Results Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+              {allResults.map((provider) => (
+                <div key={provider.number} className="relative">
+                  <ProviderCard 
+                    provider={provider} 
+                    onViewDetails={handleViewDetails}
                   />
-                  
-                  {/* Compact provider list below map */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Providers on Map</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {searchResponse.results.slice(0, 12).map((provider) => {
-                        const primaryAddress = provider.addresses.find(addr => addr.address_purpose === 'LOCATION') || provider.addresses[0];
-                        const primaryTaxonomy = provider.taxonomies.find(tax => tax.primary) || provider.taxonomies[0];
-                        const providerName = provider.enumeration_type === 'NPI-2' 
-                          ? provider.basic.organization_name
-                          : `${provider.basic.first_name} ${provider.basic.last_name}${provider.basic.credential ? `, ${provider.basic.credential}` : ''}`;
-                          
-                        return (
-                          <div
-                            key={provider.number}
-                            onClick={() => handleViewDetails(provider)}
-                            className="p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-all cursor-pointer group"
-                          >
-                            <h4 className="font-medium text-gray-900 text-sm mb-1 group-hover:text-primary-700 transition-colors">
-                              {providerName}
-                            </h4>
-                            {primaryTaxonomy && (
-                              <p className="text-xs text-gray-600 mb-2">{primaryTaxonomy.desc}</p>
-                            )}
-                            {primaryAddress && (
-                              <p className="text-xs text-gray-500">
-                                {primaryAddress.city}, {primaryAddress.state}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {searchResponse.results.length > 12 && (
-                      <p className="text-center text-gray-500 text-sm mt-4">
-                        +{searchResponse.results.length - 12} more providers
-                      </p>
-                    )}
-                  </div>
+                  <button
+                    onClick={() => toggleProviderSelection(provider)}
+                    className={`absolute top-4 right-4 p-2.5 rounded-full transition-all shadow-lg ${
+                      selectedProviders.some(p => p.number === provider.number)
+                        ? 'bg-primary-600 text-white scale-110'
+                        : 'bg-white text-gray-400 hover:text-primary-600 hover:bg-primary-50'
+                    }`}
+                  >
+                    <Phone size={16} />
+                  </button>
                 </div>
-              )}
+              ))}
             </div>
+
+            {/* Load More / Pagination */}
+            {(canLoadMore || hasMoreResults) && (
+              <div className="text-center">
+                {canLoadMore ? (
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-8 py-4 rounded-xl border border-gray-200 font-medium shadow-sm hover:shadow-md transition-all duration-300 disabled:opacity-70"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        Loading more providers...
+                      </>
+                    ) : (
+                      <>
+                        <ChevronRight size={20} />
+                        Load More Providers ({Math.min(RESULTS_PER_PAGE, totalResults - allResults.length)} more)
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                    <p className="text-gray-600 font-medium mb-2">
+                      Showing first {MAX_PAGES * RESULTS_PER_PAGE} results
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Refine your search criteria to see more specific results
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
