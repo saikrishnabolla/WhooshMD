@@ -101,6 +101,7 @@ export interface VapiCallRequest {
     provider_name: string;
     user_id: string;
     appointment_type?: string;
+    call_type?: string;
     preferred_times?: string[];
   };
 }
