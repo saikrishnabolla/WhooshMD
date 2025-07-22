@@ -13,7 +13,7 @@ import { searchProviders } from '../services/api';
 import { addSearchHistory } from '../services/storage';
 import { v4 as uuidv4 } from 'uuid';
 
-const RESULTS_PER_PAGE = 30;
+const RESULTS_PER_PAGE = 60;
 const MAX_PAGES = 3;
 
 const Search: React.FC = () => {
@@ -150,9 +150,6 @@ const Search: React.FC = () => {
     if (searchParams.postal_code) {
       parts.push(`near ${searchParams.postal_code}`);
     }
-    if (searchParams.city && searchParams.state) {
-      parts.push(`in ${searchParams.city}, ${searchParams.state}`);
-    }
     return parts.join(' ');
   };
 
@@ -228,43 +225,21 @@ const Search: React.FC = () => {
         {/* Results */}
         {totalResults > 0 && !isLoading && (
           <div>
-            {/* Results Header */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-light text-gray-900 mb-2">
-                    {totalResults.toLocaleString()} 
-                    {totalResults === 1 ? ' Provider' : ' Providers'} Found
-                  </h2>
-                  {getSearchSummary() && (
-                    <p className="text-gray-600 flex items-center gap-2">
-                      <SearchIcon size={16} />
-                      {getSearchSummary()}
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-500 mt-1">
-                    Showing {allResults.length} of {totalResults} results
-                    {currentPage > 1 && ` (Page ${currentPage} of ${Math.min(MAX_PAGES, Math.ceil(totalResults / RESULTS_PER_PAGE))})`}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Voice Call Button */}
-                  {selectedProviders.length > 0 && (
-                    <button
-                      onClick={() => setShowVoiceCallModal(true)}
-                      className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      <Phone size={16} />
-                      Check Availability ({selectedProviders.length})
-                    </button>
-                  )}
-                </div>
+            {/* Voice Call Button */}
+            {selectedProviders.length > 0 && (
+              <div className="mb-6 flex justify-center">
+                <button
+                  onClick={() => setShowVoiceCallModal(true)}
+                  className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Phone size={18} />
+                  Check Availability for {selectedProviders.length} Provider{selectedProviders.length > 1 ? 's' : ''}
+                </button>
               </div>
-            </div>
+            )}
 
             {/* Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
               {allResults.map((provider) => (
                 <div key={provider.number} className="relative">
                   <ProviderCard 

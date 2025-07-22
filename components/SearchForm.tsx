@@ -15,7 +15,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
   const [searchParams, setSearchParams] = useState<SearchParams>(
     initialParams || {
       version: '2.1',
-      limit: 30,
+      limit: 60,
     }
   );
   const [gettingLocation, setGettingLocation] = useState(false);
@@ -86,7 +86,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
   const handleClear = () => {
     setSearchParams({
       version: '2.1',
-      limit: 30,
+      limit: 60,
     });
     setProviderName('');
   };
@@ -138,7 +138,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 transition-all duration-300">
       <form onSubmit={handleSubmit}>
         {/* Main Search Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 mb-4">
           {/* Specialty */}
           <div className="lg:col-span-4">
             <label htmlFor="taxonomy_description" className="block text-sm font-medium text-gray-700 mb-2">
@@ -205,72 +205,36 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading, initialPar
               aria-label="Provider or organization name"
             />
           </div>
-          
-          {/* Search Button */}
-          <div className="lg:col-span-2 flex items-end">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Searching...
-                </>
-              ) : (
-                <>
-                  <Search size={18} />
-                  Search
-                </>
-              )}
-            </button>
-          </div>
         </div>
         
-        {/* Optional Location Fields Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-              City (Optional)
-            </label>
-            <input
-              type="text"
-              id="city"
-              name="city"
-              value={searchParams.city || ''}
-              onChange={handleInputChange}
-              placeholder="City name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
-            />
-          </div>
+        {/* Action Row */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <button
+            type="button"
+            onClick={handleClear}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors px-4 py-2 border border-gray-300 rounded-lg hover:border-red-300 hover:bg-red-50"
+          >
+            <X size={16} />
+            Clear All
+          </button>
           
-          <div>
-            <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-              State (Optional)
-            </label>
-            <input
-              type="text"
-              id="state"
-              name="state"
-              value={searchParams.state || ''}
-              onChange={handleInputChange}
-              placeholder="State code (e.g., CA)"
-              maxLength={2}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 uppercase"
-            />
-          </div>
-          
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={handleClear}
-              className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors px-4 py-3 border border-gray-300 rounded-xl hover:border-red-300 hover:bg-red-50"
-            >
-              <X size={16} />
-              Clear All
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Searching...
+              </>
+            ) : (
+              <>
+                <Search size={18} />
+                Search
+              </>
+            )}
+          </button>
         </div>
       </form>
     </div>
