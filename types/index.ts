@@ -87,3 +87,110 @@ export interface FavoriteProvider {
   provider: Provider;
   timestamp: number;
 }
+
+// Vapi Integration Types
+export interface VapiCallRequest {
+  assistantId: string;
+  phoneNumberId: string;
+  customer: {
+    number: string;
+    name?: string;
+  };
+  metadata?: {
+    provider_npi: string;
+    provider_name: string;
+    user_id: string;
+    appointment_type?: string;
+    call_type?: string;
+    preferred_times?: string[];
+  };
+}
+
+export interface VapiCallResponse {
+  id: string;
+  status: string;
+  assistantId: string;
+  phoneNumberId: string;
+  customer: {
+    number: string;
+    name?: string;
+  };
+  metadata?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VapiWebhookEvent {
+  type: 'status-update' | 'transcript' | 'function-call' | 'call-end' | 'call-start';
+  call: {
+    id: string;
+    status: string;
+    assistantId: string;
+    phoneNumberId: string;
+    customer: any;
+    metadata?: any;
+  };
+  message?: {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    transcript?: string;
+  };
+  functionCall?: {
+    name: string;
+    parameters: any;
+  };
+  timestamp: string;
+}
+
+// Enhanced Voice Call Types
+export interface VoiceCallResult {
+  provider_npi: string;
+  provider_name: string;
+  provider_phone: string;
+  call_id: string;
+  status: 'initiated' | 'in_progress' | 'completed' | 'failed' | 'error';
+  availability_found: boolean;
+  next_available_slots?: AppointmentSlot[];
+  appointment_types?: string[];
+  call_duration?: string;
+  call_summary?: string;
+  transcript?: string;
+  error_message?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AppointmentSlot {
+  date: string;
+  time: string;
+  appointment_type: string;
+  duration?: string;
+  notes?: string;
+}
+
+export interface ProviderAvailability {
+  provider_npi: string;
+  provider_name: string;
+  provider_phone: string;
+  accepting_new_patients: boolean;
+  next_available_slots: AppointmentSlot[];
+  appointment_types: string[];
+  office_hours: {
+    [key: string]: {
+      open: string;
+      close: string;
+      closed?: boolean;
+    };
+  };
+  special_notes?: string;
+  verified_at: string;
+}
+
+export interface VoiceAgentConfig {
+  max_providers_per_batch: number;
+  call_timeout_seconds: number;
+  retry_attempts: number;
+  voice_assistant_id: string;
+  phone_number_id: string;
+  appointment_verification_prompt: string;
+}
