@@ -80,10 +80,12 @@ export class OmnidimService {
         }
       );
 
-      // Note: Dispatch timestamp is included in call_context for webhook matching
+      // Store call mapping for webhook correlation
+      const callId = response.data.call_id || `omnidim_${dispatchTimestamp}`;
+      await this.storeCallMapping(callId, providerNpi);
 
       return {
-        call_id: response.data.call_id || `omnidim_${dispatchTimestamp}`,
+        call_id: callId,
         status: 'dispatched',
         dispatch_timestamp: dispatchTimestamp,
         message: 'Call dispatched successfully',
@@ -178,6 +180,32 @@ export class OmnidimService {
   }
 
 
+
+  /**
+   * Store call mapping for webhook correlation
+   */
+  private async storeCallMapping(callId: string, providerNpi: string): Promise<void> {
+    try {
+      const response = await fetch('/api/call-mapping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          call_id: callId,
+          provider_npi: providerNpi,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to store call mapping:', response.statusText);
+      } else {
+        console.log(`✅ Stored call mapping: ${callId} -> ${providerNpi}`);
+      }
+    } catch (error) {
+      console.error('Error storing call mapping:', error);
+    }
+  }
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
