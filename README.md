@@ -5,7 +5,7 @@ A modern healthcare provider search platform with integrated voice agent capabil
 ## Features
 
 - **Provider Search**: Search healthcare providers using the NPI Registry API
-- **Voice Agent Integration**: AI-powered voice calls to check provider availability (placeholder for Vapi integration)
+- **Voice Agent Integration**: AI-powered voice calls to check provider availability (using Omnidim)
 - **Local Storage**: Favorites and call history stored in browser local storage
 - **Authentication**: Supabase authentication for user management
 - **Responsive Design**: Mobile-first design with Tailwind CSS
@@ -16,7 +16,7 @@ This application has been simplified to use:
 - **Frontend**: Next.js 14 with TypeScript
 - **Authentication**: Supabase (client-side only)
 - **Data Storage**: Browser local storage for favorites and call history
-- **Voice Agent**: Placeholder implementation ready for Vapi integration
+- **Voice Agent**: Integrated with Omnidim for AI call dispatch
 - **Styling**: Tailwind CSS with custom components
 
 ## Quick Start
@@ -53,16 +53,13 @@ This application has been simplified to use:
 
 ## Voice Agent Integration
 
-The application includes a placeholder voice agent system that can be easily replaced with Vapi:
+The application uses Omnidim for AI-powered voice calling functionality:
 
-- **Current**: Mock voice agent calls for demonstration
-- **Future**: Replace with Vapi integration in `/src/app/api/voice-agent/route.ts`
+- **Current**: Mock voice agent calls for demonstration (legacy endpoint)
+- **Production**: Omnidim integration for real voice calls
 - **Local Storage**: Call history is stored locally in the browser
 
-To integrate with Vapi:
-1. Update the `VOICE_AGENT_CONFIG` in the API route
-2. Replace mock implementation with actual Vapi API calls
-3. Configure Vapi credentials in environment variables
+The legacy voice agent endpoint at `/api/voice-agent` provides mock data for testing purposes. Production voice calling functionality has been moved to Omnidim.
 
 ## Local Storage
 
@@ -106,6 +103,6 @@ Required environment variables:
 - **Styling**: Tailwind CSS
 - **Authentication**: Supabase Auth
 - **Storage**: Browser Local Storage
-- **Voice Agent**: Placeholder (ready for Vapi)
+- **Voice Agent**: Omnidim integration
 - **Icons**: Lucide React
 - **Build**: Turbopack (dev) / Webpack (prod)

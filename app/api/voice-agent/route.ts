@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { vapiService } from '../../../services/vapi';
 
 // Voice Agent Configuration
 const VOICE_AGENT_CONFIG = {
   enabled: true,
-  mock_mode: process.env.NODE_ENV === 'development' && !process.env.VAPI_API_KEY,
+  mock_mode: true, // Always use mock mode since Vapi has been replaced with Omnidim
   max_providers: 6, // Limit to 6 providers as requested
   test_phone_number: '+14153790645', // Test number for all calls
   use_test_number: true, // Set to false in production to use real numbers
@@ -37,119 +36,52 @@ export async function POST(request: NextRequest) {
 
     const callResults = [];
 
-    if (VOICE_AGENT_CONFIG.mock_mode) {
-      // Mock implementation for development/testing
-      for (const provider of limitedProviders) {
-        try {
-          const phoneToUse = VOICE_AGENT_CONFIG.use_test_number 
-            ? VOICE_AGENT_CONFIG.test_phone_number 
-            : provider.phone;
-
-          if (!phoneToUse || (phoneToUse !== VOICE_AGENT_CONFIG.test_phone_number && phoneToUse.length < 10)) {
-            callResults.push({
-              provider_number: provider.number,
-              provider_name: provider.name,
-              status: 'skipped',
-              reason: 'Invalid phone number',
-              phone: provider.phone,
-              test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
-            });
-            continue;
-          }
-
-          const mockCallId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          
-          // Simulate successful call initiation
-          callResults.push({
-            provider_number: provider.number,
-            provider_name: provider.name,
-            status: 'success',
-            call_id: mockCallId,
-            phone: phoneToUse,
-            original_phone: provider.phone,
-            test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null,
-            message: `Voice agent call initiated (mock mode)${VOICE_AGENT_CONFIG.use_test_number ? ' - using test number' : ''}`,
-            mock_data: {
-              accepting_new_patients: Math.random() > 0.3, // 70% chance of accepting
-              next_available_slots: generateMockAppointmentSlots(),
-              appointment_types: ['General Consultation', 'Follow-up', 'Physical Exam']
-            }
-          });
-        } catch (error) {
-          console.error(`Error processing provider ${provider.name}:`, error);
-          callResults.push({
-            provider_number: provider.number,
-            provider_name: provider.name,
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Unknown error',
-            phone: provider.phone
-          });
-        }
-      }
-    } else {
-      // Real Vapi integration
+    // Mock implementation - Vapi functionality has been moved to Omnidim
+    for (const provider of limitedProviders) {
       try {
-        const vapiProviders = limitedProviders
-          .map(p => {
-            const phoneToUse = VOICE_AGENT_CONFIG.use_test_number 
-              ? VOICE_AGENT_CONFIG.test_phone_number 
-              : p.phone;
-            
-            return {
-              phone: phoneToUse,
-              name: p.name,
-              npi: p.number,
-              original_phone: p.phone
-            };
-          })
-          .filter(p => p.phone && (p.phone === VOICE_AGENT_CONFIG.test_phone_number || p.phone.length >= 10));
+        const phoneToUse = VOICE_AGENT_CONFIG.use_test_number 
+          ? VOICE_AGENT_CONFIG.test_phone_number 
+          : provider.phone;
 
-        if (vapiProviders.length === 0) {
-          return NextResponse.json({ 
-            error: 'No providers with valid phone numbers found' 
-          }, { status: 400 });
+        if (!phoneToUse || (phoneToUse !== VOICE_AGENT_CONFIG.test_phone_number && phoneToUse.length < 10)) {
+          callResults.push({
+            provider_number: provider.number,
+            provider_name: provider.name,
+            status: 'skipped',
+            reason: 'Invalid phone number',
+            phone: provider.phone,
+            test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
+          });
+          continue;
         }
 
-        const vapiCalls = await vapiService.createBatchAppointmentCalls(
-          vapiProviders,
-          user_id,
-          appointment_type
-        );
-
-        for (let i = 0; i < vapiProviders.length; i++) {
-          const provider = limitedProviders[i];
-          const vapiProvider = vapiProviders[i];
-          const vapiCall = vapiCalls[i];
-
-          if (vapiCall) {
-            callResults.push({
-              provider_number: provider.number,
-              provider_name: provider.name,
-              status: 'success',
-              call_id: vapiCall.id,
-              phone: vapiProvider.phone,
-              original_phone: vapiProvider.original_phone,
-              test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null,
-              message: `Voice agent call initiated successfully${VOICE_AGENT_CONFIG.use_test_number ? ' - using test number' : ''}`,
-              vapi_call_data: vapiCall
-            });
-          } else {
-            callResults.push({
-              provider_number: provider.number,
-              provider_name: provider.name,
-              status: 'error',
-              error: 'Failed to initiate Vapi call',
-              phone: provider.phone,
-              original_phone: provider.phone
-            });
+        const mockCallId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Simulate successful call initiation
+        callResults.push({
+          provider_number: provider.number,
+          provider_name: provider.name,
+          status: 'success',
+          call_id: mockCallId,
+          phone: phoneToUse,
+          original_phone: provider.phone,
+          test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null,
+          message: `Voice agent call initiated (mock mode)${VOICE_AGENT_CONFIG.use_test_number ? ' - using test number' : ''}`,
+          mock_data: {
+            accepting_new_patients: Math.random() > 0.3, // 70% chance of accepting
+            next_available_slots: generateMockAppointmentSlots(),
+            appointment_types: ['General Consultation', 'Follow-up', 'Physical Exam']
           }
-        }
+        });
       } catch (error) {
-        console.error('Error with Vapi integration:', error);
-        return NextResponse.json({
-          error: 'Failed to initiate voice agent calls. Please try again.',
-          details: error instanceof Error ? error.message : 'Unknown error'
-        }, { status: 500 });
+        console.error(`Error processing provider ${provider.name}:`, error);
+        callResults.push({
+          provider_number: provider.number,
+          provider_name: provider.name,
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          phone: provider.phone
+        });
       }
     }
 
@@ -158,13 +90,14 @@ export async function POST(request: NextRequest) {
       results: callResults,
       total_providers: limitedProviders.length,
       successful_calls: callResults.filter(r => r.status === 'success').length,
-      mode: VOICE_AGENT_CONFIG.mock_mode ? 'mock' : 'production',
+      mode: 'mock',
       max_providers_limit: VOICE_AGENT_CONFIG.max_providers,
       appointment_type: appointment_type || 'general consultation',
       test_configuration: {
         using_test_number: VOICE_AGENT_CONFIG.use_test_number,
         test_number: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
-      }
+      },
+      note: 'Voice calling functionality has been moved to Omnidim. This endpoint provides mock data for testing.'
     });
 
   } catch (error) {
@@ -183,45 +116,36 @@ export async function GET(request: NextRequest) {
     const callId = searchParams.get('call_id');
 
     if (callId) {
-      // Get specific call details
-      if (VOICE_AGENT_CONFIG.mock_mode) {
-        return NextResponse.json({
-          call_id: callId,
-          status: 'completed',
-          message: 'Mock call completed',
-          mock_mode: true,
-          test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
-        });
-      } else {
-        const callDetails = await vapiService.getCall(callId);
-        return NextResponse.json(callDetails);
-      }
+      // Get specific call details - mock implementation
+      return NextResponse.json({
+        call_id: callId,
+        status: 'completed',
+        message: 'Mock call completed - Voice calling has been moved to Omnidim',
+        mock_mode: true,
+        test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
+      });
     }
 
     if (userId) {
-      // Get all calls for user
-      if (VOICE_AGENT_CONFIG.mock_mode) {
-        return NextResponse.json({
-          calls: [],
-          message: 'Mock mode - no real calls to retrieve',
-          mock_mode: true,
-          test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
-        });
-      } else {
-        const userCalls = await vapiService.getUserCalls(userId);
-        return NextResponse.json({ calls: userCalls });
-      }
+      // Get all calls for user - mock implementation
+      return NextResponse.json({
+        calls: [],
+        message: 'Mock mode - Voice calling functionality has been moved to Omnidim',
+        mock_mode: true,
+        test_number_used: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
+      });
     }
 
     return NextResponse.json({ 
-      status: 'Voice Agent API is running',
+      status: 'Voice Agent API is running (mock mode only)',
       config: {
         enabled: VOICE_AGENT_CONFIG.enabled,
         mock_mode: VOICE_AGENT_CONFIG.mock_mode,
         max_providers: VOICE_AGENT_CONFIG.max_providers,
         using_test_number: VOICE_AGENT_CONFIG.use_test_number,
         test_number: VOICE_AGENT_CONFIG.use_test_number ? VOICE_AGENT_CONFIG.test_phone_number : null
-      }
+      },
+      note: 'Voice calling functionality has been moved to Omnidim. This endpoint provides mock data for testing.'
     });
 
   } catch (error) {
