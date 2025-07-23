@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OmnidimService } from '../../../../services/omnidim';
-import { storeCallResult } from '../../call-results/route';
-import { callMapping } from '../../call-mapping/route';
+import { storeCallResult } from '@/lib/call-results';
+import { getProviderNpiByCallId } from '@/lib/call-mapping';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     
     if (!providerNpi && body.call_id) {
       // Try to find provider NPI from call mapping
-      providerNpi = callMapping.get(String(body.call_id));
+      providerNpi = getProviderNpiByCallId(body.call_id);
       console.log(`🔍 Found provider NPI from mapping: ${providerNpi}`);
     }
 

@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// In-memory storage for call ID to provider NPI mapping
-const callMapping = new Map<string, string>()
+import { storeCallMapping, getProviderNpiByCallId, getAllMappings, getMappingCount } from "@/lib/call-mapping"
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,14 +9,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing call_id or provider_npi" }, { status: 400 })
     }
 
-    callMapping.set(String(call_id), provider_npi)
-    console.log(`✅ Stored mapping: call_id ${call_id} -> provider_npi ${provider_npi}`)
-    console.log(`📊 Total mappings stored: ${callMapping.size}`)
+    storeCallMapping(call_id, provider_npi)
 
     return NextResponse.json({
       success: true,
       message: `Mapping stored for call_id ${call_id}`,
-      total_mappings: callMapping.size,
+      total_mappings: getMappingCount(),
     })
   } catch (error) {
     console.error("❌ Error storing call mapping:", error)
@@ -31,16 +27,13 @@ export async function GET(request: NextRequest) {
   const callId = searchParams.get("call_id")
 
   if (callId) {
-    const npi = callMapping.get(String(callId))
+    const npi = getProviderNpiByCallId(callId)
     console.log(`🔍 Looking up call_id ${callId}, found NPI: ${npi}`)
     return NextResponse.json({ call_id: callId, provider_npi: npi })
   }
 
   // Return all mappings
-  const mappings = Array.from(callMapping.entries()).map(([call_id, provider_npi]) => ({
-    call_id,
-    provider_npi,
-  }))
+  const mappings = getAllMappings()
 
   console.log(`📋 Returning ${mappings.length} total mappings`)
 
@@ -49,6 +42,3 @@ export async function GET(request: NextRequest) {
     total_count: mappings.length,
   })
 }
-
-// Export the mapping for use in other modules
-export { callMapping }
