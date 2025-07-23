@@ -24,7 +24,7 @@ const Button = ({ children, variant = "default", size = "default", className = "
   className?: string,
   asChild?: boolean,
   onClick?: () => void,
-  [key: string]: any
+  [key: string]: unknown
 }) => {
   const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors"
   const variantClasses = {
@@ -39,7 +39,7 @@ const Button = ({ children, variant = "default", size = "default", className = "
   }
   
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, {
+    return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
       className: `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`
     })
   }
@@ -126,9 +126,6 @@ interface EnhancedProviderCardProps {
 export function EnhancedProviderCard({ 
   provider, 
   callResult, 
-  isSelected = false,
-  onSelectionChange,
-  canSelect = true,
   onViewDetails 
 }: EnhancedProviderCardProps) {
   const [showFullSummary, setShowFullSummary] = useState(false)

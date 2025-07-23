@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { openInNewTab } from '../lib/utils';
 import { 
   Calendar, 
   Clock, 
@@ -8,9 +7,6 @@ import {
   XCircle, 
   AlertCircle, 
   MessageSquare, 
-  FileText,
-  MapPin,
-  User,
   Stethoscope,
   ChevronDown,
   ChevronUp,
@@ -41,12 +37,7 @@ const AvailabilityResults: React.FC<AvailabilityResultsProps> = ({ calls, onClos
     return <Clock className="w-5 h-5 text-yellow-500 animate-spin" />;
   };
 
-  const getStatusText = (call: LocalVoiceCall) => {
-    if (call.status === 'completed') {
-      return call.availability_found ? 'Appointments Available' : 'No Availability';
-    }
-    return 'Checking...';
-  };
+
 
   const getStatusColor = (call: LocalVoiceCall) => {
     if (call.status === 'completed') {
@@ -189,7 +180,7 @@ const AvailabilityResults: React.FC<AvailabilityResultsProps> = ({ calls, onClos
                         {/* Quick Appointment Slots Preview */}
                         {(call.next_available_slots || mockData?.next_available_slots) && (
                           <div className="flex flex-wrap gap-2 mb-3">
-                            {(call.next_available_slots || mockData?.next_available_slots)?.slice(0, 3).map((slot: any, idx: number) => {
+                            {(call.next_available_slots || mockData?.next_available_slots)?.slice(0, 3).map((slot: { date: string; time: string; appointment_type?: string; duration?: string }, idx: number) => {
                               const { dayLabel, timeLabel } = formatAppointmentDate(slot.date, slot.time);
                               return (
                                 <div
@@ -249,7 +240,7 @@ const AvailabilityResults: React.FC<AvailabilityResultsProps> = ({ calls, onClos
                               All Available Slots
                             </h4>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {(call.next_available_slots || mockData?.next_available_slots)?.map((slot: any, idx: number) => {
+                              {(call.next_available_slots || mockData?.next_available_slots)?.map((slot: { date: string; time: string; appointment_type?: string; duration?: string }, idx: number) => {
                                 const { dayLabel, timeLabel } = formatAppointmentDate(slot.date, slot.time);
                                 return (
                                   <div

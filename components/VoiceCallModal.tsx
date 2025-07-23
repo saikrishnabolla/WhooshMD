@@ -179,7 +179,7 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <h4 className="font-medium text-blue-900 mb-2">How it works:</h4>
                   <ul className="text-sm text-blue-700 space-y-1 text-left">
-                    <li>• AI agent calls each provider's office</li>
+                    <li>• AI agent calls each provider&apos;s office</li>
                     <li>• Asks about new patient availability this week</li>
                     <li>• Records available appointment slots and types</li>
                     <li>• Provides you with a detailed availability report</li>

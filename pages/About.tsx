@@ -2,10 +2,9 @@
 
 import React from 'react';
 import { 
-  ArrowRight, Phone, Clock, AlertCircle, Mail, 
+  Phone, Clock, AlertCircle, Mail, 
   FileText, Building2, HeartPulse, Timer
 } from 'lucide-react';
-import { Link } from '../components/ui/Link';
 
 const About: React.FC = () => {
   return (
@@ -18,7 +17,7 @@ const About: React.FC = () => {
               Skip the phone-tag.<br />See a doctor this week.
             </h1>
             <p className="text-lg sm:text-xl text-white/80 mb-8">
-              We're transforming healthcare access with real-time availability data and 
+              We&apos;re transforming healthcare access with real-time availability data and 
               AI-powered matching.
             </p>
           </div>
@@ -31,10 +30,10 @@ const About: React.FC = () => {
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
               <p className="text-base sm:text-lg text-gray-600 mb-6">
-                We started Whoosh MD with one stubborn question: "Why does finding a doctor 
-                still feel like dialing a broken phone tree?" Nearly half of the locations 
+                We started Whoosh MD with one stubborn question: &quot;Why does finding a doctor 
+                still feel like dialing a broken phone tree?&quot; Nearly half of the locations 
                 listed in U.S. provider directories are wrong, and up to 36% of doctors 
-                falsely appear as "accepting new patients."
+                falsely appear as &quot;accepting new patients.&quot;
               </p>
               
               <div className="mt-8 bg-gray-50 rounded-xl p-6">
@@ -46,7 +45,7 @@ const About: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                    <p className="text-gray-700">Up to 36% of doctors falsely appear as "accepting new patients"</p>
+                    <p className="text-gray-700">Up to 36% of doctors falsely appear as &quot;accepting new patients&quot;</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <Clock className="w-5 h-5 text-red-500 flex-shrink-0" />

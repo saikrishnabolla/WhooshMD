@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OmnidimService } from '../../../../services/omnidim';
 import { storeCallResult } from '@/lib/call-results';
 import { getProviderNpiByCallId } from '@/lib/call-mapping';
 
@@ -17,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get provider NPI from call mapping
-    let providerNpi = getProviderNpiByCallId(callId);
+    const providerNpi = getProviderNpiByCallId(callId);
     console.log(`🔍 Found provider NPI from mapping: ${providerNpi}`);
 
     if (!providerNpi) {
@@ -60,9 +59,6 @@ export async function POST(request: NextRequest) {
     // TODO: Send real-time update to frontend
     // await sendRealTimeUpdate(processedResult);
 
-    // Handle different types of call results
-    const callStatus = 'completed'; // Omnidim webhooks are for completed calls
-    
     console.log(`Call ${callId} completed successfully`);
 
     // Respond with success

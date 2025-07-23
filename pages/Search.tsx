@@ -1,14 +1,14 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Search as SearchIcon, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Phone, Search as SearchIcon, Loader2, ChevronRight } from 'lucide-react';
 import SearchForm from '../components/SearchForm';
 import ProviderCard from '../components/ProviderCard';
 import ProviderDetail from '../components/ProviderDetail';
 import EmptyState from '../components/EmptyState';
 import VoiceCallModal from '../components/VoiceCallModal';
 import SearchHistory from '../components/SearchHistory';
-import { Provider, SearchParams, SearchResponse, SearchHistoryItem } from '../types';
+import { Provider, SearchParams, SearchHistoryItem } from '../types';
 import { searchProviders } from '../services/api';
 import { addSearchHistory } from '../services/storage';
 import { v4 as uuidv4 } from 'uuid';
@@ -21,7 +21,7 @@ const Search: React.FC = () => {
     version: '2.1',
     limit: RESULTS_PER_PAGE,
   });
-  const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
@@ -73,7 +73,6 @@ const Search: React.FC = () => {
         setAllResults(response.results);
         setTotalResults(response.result_count);
         setOriginalSearchParams(params);
-        setSearchResponse(response);
         setSearchPerformed(true);
         
         // Add to search history only for new searches
@@ -89,10 +88,6 @@ const Search: React.FC = () => {
       } else {
         // Subsequent pages - append results
         setAllResults(prev => [...prev, ...response.results]);
-        setSearchResponse({
-          result_count: totalResults,
-          results: [...allResults, ...response.results]
-        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while searching for providers');
@@ -142,16 +137,7 @@ const Search: React.FC = () => {
     });
   };
 
-  const getSearchSummary = () => {
-    const parts = [];
-    if (searchParams.taxonomy_description) {
-      parts.push(searchParams.taxonomy_description);
-    }
-    if (searchParams.postal_code) {
-      parts.push(`near ${searchParams.postal_code}`);
-    }
-    return parts.join(' ');
-  };
+
 
   const canLoadMore = currentPage < MAX_PAGES && allResults.length < totalResults;
   const hasMoreResults = totalResults > allResults.length;
