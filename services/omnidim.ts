@@ -7,6 +7,7 @@ const OMNIDIM_CONFIG = {
   agentId: 1060,
   testPhoneNumber: '+14153790645', // Currently hardcoded for testing
   webhookUrl: process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://yourapp.com/api/webhook/call-result',
+  apiKey: process.env.OMNIDIM_API_KEY,
 };
 
 export interface OmnidimCallRequest {
@@ -45,8 +46,13 @@ export class OmnidimService {
     providerName: string,
     providerNpi: string,
     specialties: string,
-    userId: string
+    userId: string,
+    webhookUrl?: string
   ): Promise<OmnidimCallResponse> {
+    if (!OMNIDIM_CONFIG.apiKey) {
+      throw new Error('Omnidim API key not configured');
+    }
+
     const dispatchTimestamp = Date.now();
     
     const callRequest: OmnidimCallRequest = {
@@ -57,7 +63,7 @@ export class OmnidimService {
         provider_npi: providerNpi,
         specialties: specialties,
         purpose: "Check availability for new patients this week",
-        webhook_url: this.webhookUrl,
+        webhook_url: webhookUrl || this.webhookUrl,
         dispatch_timestamp: dispatchTimestamp,
       },
     };
@@ -68,13 +74,13 @@ export class OmnidimService {
         callRequest,
         {
           headers: {
+            Authorization: `Bearer ${OMNIDIM_CONFIG.apiKey}`,
             'Content-Type': 'application/json',
           },
         }
       );
 
-      // Store dispatch timestamp for webhook matching
-      this.storeDispatchTimestamp(providerNpi, dispatchTimestamp);
+      // Note: Dispatch timestamp is included in call_context for webhook matching
 
       return {
         call_id: response.data.call_id || `omnidim_${dispatchTimestamp}`,
@@ -97,7 +103,8 @@ export class OmnidimService {
       npi: string;
       specialties: string;
     }>,
-    userId: string
+    userId: string,
+    webhookUrl?: string
   ): Promise<OmnidimCallResponse[]> {
     const calls: OmnidimCallResponse[] = [];
     const maxBatchSize = 6; // Limit to 6 providers
@@ -111,7 +118,8 @@ export class OmnidimService {
           provider.name,
           provider.npi,
           provider.specialties,
-          userId
+          userId,
+          webhookUrl
         );
         calls.push(call);
         
@@ -169,23 +177,7 @@ export class OmnidimService {
     }
   }
 
-  /**
-   * Store dispatch timestamp for webhook matching
-   */
-  private storeDispatchTimestamp(providerNpi: string, timestamp: number): void {
-    // Store in browser localStorage for now, will be replaced with Supabase
-    const key = `omnidim_dispatch_${providerNpi}`;
-    localStorage.setItem(key, timestamp.toString());
-  }
 
-  /**
-   * Get stored dispatch timestamp for webhook matching
-   */
-  static getDispatchTimestamp(providerNpi: string): number | null {
-    const key = `omnidim_dispatch_${providerNpi}`;
-    const timestamp = localStorage.getItem(key);
-    return timestamp ? parseInt(timestamp) : null;
-  }
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));

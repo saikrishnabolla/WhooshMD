@@ -16,12 +16,6 @@ export async function POST(request: NextRequest) {
       // TODO: Store result in Supabase
       // await saveCallResultToSupabase(processedResult);
       
-      // For now, store in browser storage (will be replaced with Supabase)
-      if (typeof window !== 'undefined') {
-        const key = `call_result_${processedResult.provider_npi}`;
-        localStorage.setItem(key, JSON.stringify(processedResult));
-      }
-      
       // TODO: Send real-time update to frontend
       // await sendRealTimeUpdate(processedResult);
     }
