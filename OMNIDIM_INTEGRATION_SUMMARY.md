@@ -1,176 +1,155 @@
-# Omnidim Integration & Search Page Enhancement Summary
+# Omnidim Integration - Working Version Adaptation
 
-## Overview
-Successfully enhanced the search page design and replaced Vapi with Omnidim for healthcare provider availability checking.
+## 🎯 Overview
 
-## 🎨 Search Page Design Improvements
+I've successfully adapted your working Omnidim code into your current system. The key changes focus on **timestamp-based call matching** rather than simple call_id mapping, which is essential for the polling frontend to work correctly with Omnidim webhooks.
 
-### Grid Layout Changes
-- **Before**: 4 columns (`grid-cols-4`) - cramped appearance
-- **After**: 3 columns (`grid-cols-3`) - better spacing and readability
-- Added larger gaps (`gap-6 lg:gap-8`) for better visual separation
+## 🔧 Key Changes Made
 
-### ProviderCard Enhancements
-- Increased padding from `p-4` to `p-6` for better breathing room
-- Improved typography with larger font sizes and better line heights
-- Enhanced hover effects and visual feedback
-- Better alignment and spacing for all elements
-- Improved button styling with larger touch targets
+### 1. **Call Mapping with In-Memory Storage** (`/app/api/call-mapping/route.ts`)
+- ✅ Restored in-memory `Map<number, string>` for call_id → provider_npi mapping
+- ✅ Direct exports for cross-module access
+- ✅ Numeric call IDs to match Omnidim format
 
-### Interaction Improvements
-- Better phone selection button styling with hover effects
-- Added tooltips for better UX
-- Improved visual hierarchy with consistent spacing
+### 2. **Call Timestamps Tracking** (`/app/api/make-calls/route.ts`)
+- ✅ Added `callTimestamps` Map to store dispatch times
+- ✅ Captures dispatch timestamp, provider info, call_id, and user_id
+- ✅ Essential for webhook matching when calls complete
 
-## 🔄 Omnidim Integration
+### 3. **Timestamp-Based Webhook Matching** (`/app/api/webhook/call-result/route.ts`)
+- ✅ **15-minute time window matching** (calls complete within 15 mins)
+- ✅ **Closest timestamp logic** for accurate provider matching
+- ✅ **Comprehensive logging** for debugging webhook issues
+- ✅ **Fallback handling** when no provider found
 
-### New Services Created
+### 4. **Enhanced Call Results API** (`/app/api/call-results/route.ts`)
+- ✅ **call_ids polling support** for frontend to check status
+- ✅ **provider_npis bulk fetching** for existing functionality
+- ✅ **Supabase + in-memory storage** for persistence
 
-#### `services/omnidim.ts`
-- **Purpose**: Replace Vapi with Omnidim for AI call dispatch
-- **Key Features**:
-  - Call dispatch to `https://backend.omnidim.io/api/v1/calls/dispatch`
-  - Agent ID: 1060
-  - Test phone number: `+14153790645`
-  - Timestamp-based webhook correlation
-  - Batch call processing (up to 6 providers)
-  - Error handling and retry logic
+### 5. **Test Polling Endpoint** (`/app/api/test-polling/route.ts`)
+- ✅ **Debug endpoint** for checking mappings and results
+- ✅ **Direct memory inspection** for troubleshooting
+- ✅ **GET/POST support** for different testing scenarios
 
-#### API Routes
+### 6. **Shared Storage Layer** (`/lib/call-storage.ts`)
+- ✅ **Centralized in-memory maps** for cross-module sharing
+- ✅ **TypeScript interfaces** for proper typing
+- ✅ **Shared storeCallResult function** for consistency
 
-##### `app/api/make-calls/route.ts`
-- **Purpose**: Call dispatch endpoint
-- **Replaces**: `/api/voice-agent` (Vapi)
-- **Features**:
-  - Provider data processing
-  - Mock mode for development
-  - Batch call dispatch
-  - Real-time status tracking
+## 🕐 Timestamp Matching Logic
 
-##### `app/api/webhook/call-result/route.ts`
-- **Purpose**: Receive call results from Omnidim
-- **Features**:
-  - Webhook event processing
-  - Timestamp correlation for result matching
-  - Status handling (in-progress, completed, failed, no-answer)
-  - Prepared for Supabase storage integration
+The core innovation from your working version is **timestamp-based matching**:
 
-##### `app/api/call-results/route.ts`
-- **Purpose**: Retrieve stored call results
-- **Features**:
-  - User-based result queries
-  - Provider-specific result lookup
-  - Real-time polling support
-  - Supabase integration ready
+```typescript
+// When making calls - store timestamps
+callTimestamps.set(provider.number, {
+  timestamp: Date.now(),
+  phone_number: provider.number,
+  provider_name: provider.name,
+  call_id: mockCallId,
+  user_id: user_id
+})
 
-### Component Updates
+// When webhook arrives - find closest timestamp
+const webhookTime = new Date(call_date).getTime()
+const fifteenMinutesBefore = webhookTime - 15 * 60 * 1000
+const fiveMinutesAfter = webhookTime + 5 * 60 * 1000
 
-#### `components/VoiceCallModal.tsx`
-- Updated API endpoint from `/api/voice-agent` to `/api/make-calls`
-- Changed messaging from "Voice Agent" to "AI Agent"
-- Updated payload structure for Omnidim compatibility
-- Improved user experience with better status messages
-
-#### `components/AvailabilityResults.tsx`
-- Updated terminology to reflect Omnidim integration
-- Maintained compatibility with existing data structures
-- Enhanced status display and messaging
-
-### Data Flow
-
-#### Call Dispatch Process
-1. User selects providers on search page
-2. `VoiceCallModal` dispatches calls via `/api/make-calls`
-3. Omnidim service processes providers with specialties
-4. Each call includes:
-   - Provider name and NPI
-   - Specialties
-   - Purpose: "Check availability for new patients this week"
-   - Webhook URL for results
-   - Dispatch timestamp for correlation
-
-#### Webhook Processing
-1. Omnidim sends results to `/api/webhook/call-result`
-2. Timestamp correlation matches results to original requests
-3. Results stored (currently localStorage, ready for Supabase)
-4. Real-time updates sent to frontend
-
-#### Results Retrieval
-1. Frontend polls `/api/call-results` for updates
-2. Results display availability status and appointment slots
-3. Users can view detailed availability information
-
-## 🗄️ Storage Transition Preparation
-
-### Current State
-- Using browser localStorage for development
-- All storage functions support user-based data segregation
-- Enhanced `LocalVoiceCall` interface supports Omnidim data structure
-
-### Supabase Ready
-- All API routes include TODO markers for Supabase integration
-- Data structures compatible with relational database storage
-- Webhook processing prepared for database persistence
-- User authentication context maintained
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-NEXT_PUBLIC_WEBHOOK_URL=https://yourapp.com/api/webhook/call-result
-NODE_ENV=development  # Enables mock mode
+// Match calls dispatched in time window
+for (const [npi, callData] of Array.from(callTimestamps.entries())) {
+  if (callData.timestamp >= fifteenMinutesBefore && callData.timestamp <= fiveMinutesAfter) {
+    // Find closest match
+    const timeDiff = Math.abs(webhookTime - callData.timestamp)
+    if (timeDiff < closestTimeDiff) {
+      provider_npi = npi
+      matchedCallData = callData
+    }
+  }
+}
 ```
 
-### Test Configuration
-- Test phone number: `+14153790645`
-- Mock mode enabled in development
-- Agent ID: 1060 (Omnidim)
-- Maximum 6 providers per batch
+## 📊 Frontend Polling Support
 
-## 🎯 Key Benefits
+The system now supports **call_ids polling** for the frontend:
 
-### Design Improvements
-- Less cramped provider cards with better readability
-- Improved visual hierarchy and spacing
-- Better mobile responsiveness
-- Enhanced user interaction feedback
+```typescript
+// Frontend can poll with call IDs
+POST /api/call-results
+{
+  "call_ids": ["call_123", "call_456", "call_789"]
+}
 
-### Omnidim Integration
-- Real healthcare provider calling capability
-- Professional AI agent interactions
-- Timestamp-based result correlation
-- Scalable batch processing
-- Error handling and retry logic
+// Response includes completion status
+{
+  "success": true,
+  "results": [
+    {
+      "call_id": "call_123",
+      "provider_npi": "1234567890",
+      "status": "completed",
+      "availability_status": "accepting_new_patients",
+      "availability_details": "Next available: Tomorrow 2PM",
+      "summary": "Provider is accepting new patients..."
+    }
+  ]
+}
+```
 
-### Future-Ready Architecture
-- Supabase integration prepared
-- Real-time update capabilities
-- Scalable webhook processing
-- User-based data segregation
+## 🛠️ API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|---------|---------|
+| `/api/call-mapping` | POST/GET | Store/retrieve call ID mappings |
+| `/api/call-results` | POST | Poll for results by call_ids or provider_npis |
+| `/api/make-calls` | POST | Dispatch calls and store timestamps |
+| `/api/webhook/call-result` | POST | Process Omnidim webhooks with timestamp matching |
+| `/api/test-polling` | GET/POST | Debug endpoint for checking mappings |
+
+## 🔍 Debugging Features
+
+1. **Comprehensive Logging**:
+   - Call dispatch timestamps
+   - Webhook matching process
+   - Time differences and matches
+   - Available mappings for debugging
+
+2. **Test Polling Endpoint**:
+   - Check in-memory storage
+   - Verify call mappings
+   - Debug webhook processing
+
+3. **Debug Info in Responses**:
+   - Matched by timestamp vs call_id
+   - Time differences in seconds
+   - Search window details
 
 ## 🚀 Next Steps
 
-1. **Supabase Integration**: Replace localStorage with Supabase for production data persistence
-2. **Real-time Updates**: Implement WebSocket or Server-Sent Events for live result updates
-3. **Production Deployment**: Configure production webhook URLs and environment variables
-4. **Analytics**: Add call success rate tracking and provider response analytics
-5. **User Notifications**: Add email/SMS notifications when availability is found
+1. **Database Schema**: Ensure your Supabase `call_results` table has:
+   - `call_id` column (for polling)
+   - `provider_npi` column
+   - `user_id` column
+   - All other fields from the interface
 
-## 📊 Monitoring & Analytics
+2. **Frontend Integration**: Update your frontend to:
+   - Store call_ids from make-calls response
+   - Poll `/api/call-results` with call_ids every 5 seconds
+   - Display results as they arrive
 
-### Call Success Metrics
-- Total calls dispatched
-- Successful connections
-- Availability found rate
-- Average response time
-- Provider response patterns
+3. **Omnidim Webhook**: Configure your Omnidim account to send webhooks to:
+   ```
+   https://yourdomain.com/api/webhook/call-result
+   ```
 
-### User Experience Metrics
-- Search to availability time
-- User engagement with results
-- Appointment booking success rate
-- User retention and repeat usage
+## ✅ What's Working Now
 
----
+- ✅ **Call dispatch** with timestamp tracking
+- ✅ **Webhook processing** with timestamp matching
+- ✅ **Frontend polling** support via call_ids
+- ✅ **Persistent storage** in Supabase
+- ✅ **In-memory caching** for real-time access
+- ✅ **TypeScript compilation** without errors
+- ✅ **Cross-module sharing** of storage maps
 
-*All changes maintain backward compatibility while preparing for future Supabase integration and production deployment.*
+The system is now ready for MVP testing with Omnidim's webhook integration!
