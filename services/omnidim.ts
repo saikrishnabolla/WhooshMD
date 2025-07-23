@@ -82,7 +82,7 @@ export class OmnidimService {
 
       // Store call mapping for webhook correlation
       const callId = response.data.call_id || `omnidim_${dispatchTimestamp}`;
-      await this.storeCallMapping(callId, providerNpi);
+      await this.storeCallMapping(callId, providerNpi, userId);
 
       return {
         call_id: callId,
@@ -184,8 +184,13 @@ export class OmnidimService {
   /**
    * Store call mapping for webhook correlation
    */
-  private async storeCallMapping(callId: string, providerNpi: string): Promise<void> {
+  private async storeCallMapping(callId: string, providerNpi: string, userId?: string): Promise<void> {
     try {
+      // Store in memory mapping
+      const { storeCallMapping } = await import('../lib/call-mapping');
+      storeCallMapping(callId, providerNpi);
+      
+      // Also store in database for persistence (optional enhancement)
       const response = await fetch('/api/call-mapping', {
         method: 'POST',
         headers: {
@@ -194,6 +199,7 @@ export class OmnidimService {
         body: JSON.stringify({
           call_id: callId,
           provider_npi: providerNpi,
+          user_id: userId,
         }),
       });
 

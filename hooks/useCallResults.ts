@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
 interface CallResult {
+  call_id?: string
   provider_npi: string
   phone_number: string
   status: "calling" | "completed" | "failed"
@@ -19,6 +20,12 @@ interface UseCallResultsOptions {
   refreshInterval?: number
 }
 
+interface UseCallResultsByIdOptions {
+  callIds?: string[]
+  autoRefresh?: boolean
+  refreshInterval?: number
+}
+
 interface UseCallResultsReturn {
   callResults: Map<string, CallResult>
   loading: boolean
@@ -27,6 +34,99 @@ interface UseCallResultsReturn {
   getCallResult: (providerNpi: string) => CallResult | undefined
 }
 
+interface UseCallResultsByIdReturn {
+  callResults: Map<string, CallResult>
+  loading: boolean
+  error: string | null
+  refetch: () => Promise<void>
+  getCallResult: (callId: string) => CallResult | undefined
+}
+
+// New hook for call_id-based polling
+export function useCallResultsByIds({
+  callIds = [],
+  autoRefresh = true,
+  refreshInterval = 5000, // 5 seconds as specified
+}: UseCallResultsByIdOptions = {}): UseCallResultsByIdReturn {
+  const [callResults, setCallResults] = useState<Map<string, CallResult>>(new Map())
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchCallResults = useCallback(async () => {
+    if (callIds.length === 0) {
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/call-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ call_ids: callIds }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch call results: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.results) {
+        const newResults = new Map<string, CallResult>()
+        
+        data.results.forEach((result: CallResult) => {
+          if (result.call_id) {
+            newResults.set(result.call_id, result)
+          }
+        })
+        
+        setCallResults(newResults)
+      } else {
+        console.warn('No call results found or invalid response format')
+        setCallResults(new Map())
+      }
+    } catch (err) {
+      console.error('Error fetching call results by IDs:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch call results')
+    } finally {
+      setLoading(false)
+    }
+  }, [callIds])
+
+  const getCallResult = useCallback((callId: string): CallResult | undefined => {
+    return callResults.get(callId)
+  }, [callResults])
+
+  // Initial fetch
+  useEffect(() => {
+    fetchCallResults()
+  }, [fetchCallResults])
+
+  // Auto-refresh if enabled
+  useEffect(() => {
+    if (!autoRefresh) return
+
+    const interval = setInterval(() => {
+      fetchCallResults()
+    }, refreshInterval)
+
+    return () => clearInterval(interval)
+  }, [autoRefresh, refreshInterval, fetchCallResults])
+
+  return {
+    callResults,
+    loading,
+    error,
+    refetch: fetchCallResults,
+    getCallResult,
+  }
+}
+
+// Original hook for provider_npi-based polling (unchanged)
 export function useCallResults({
   providerNpis = [],
   userId,

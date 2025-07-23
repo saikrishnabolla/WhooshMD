@@ -2,8 +2,9 @@
 -- This table should be created in your Supabase database
 
 CREATE TABLE IF NOT EXISTS call_results (
-  id SERIAL PRIMARY KEY,
-  provider_npi VARCHAR(10) NOT NULL UNIQUE,
+  id SERIAL,
+  call_id VARCHAR(50) PRIMARY KEY,
+  provider_npi VARCHAR(10) NOT NULL,
   phone_number VARCHAR(20),
   status VARCHAR(20) NOT NULL DEFAULT 'pending',
   availability_status TEXT,
@@ -17,7 +18,8 @@ CREATE TABLE IF NOT EXISTS call_results (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create index for faster lookups
+-- Create indexes for faster lookups
+CREATE INDEX IF NOT EXISTS idx_call_results_call_id ON call_results(call_id);
 CREATE INDEX IF NOT EXISTS idx_call_results_provider_npi ON call_results(provider_npi);
 CREATE INDEX IF NOT EXISTS idx_call_results_user_id ON call_results(user_id);
 CREATE INDEX IF NOT EXISTS idx_call_results_status ON call_results(status);

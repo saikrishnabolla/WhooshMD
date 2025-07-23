@@ -124,6 +124,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       results: callResults,
+      call_ids: callResults
+        .filter(r => r.status === 'success' && r.call_id)
+        .map(r => r.call_id),
       total_providers: limitedProviders.length,
       successful_calls: callResults.filter(r => r.status === 'success').length,
       mode: CALL_DISPATCH_CONFIG.mock_mode ? 'mock' : 'production',

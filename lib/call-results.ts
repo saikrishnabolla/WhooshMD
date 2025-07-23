@@ -15,19 +15,20 @@ export async function storeCallResult(result: any) {
 
   const { error } = await supabaseAdmin.from("call_results").upsert(
     {
+      call_id: result.call_id,
       provider_npi: result.provider_npi,
-      phone_number: result.phone_number,
+      phone_number: result.phone_number || result.provider_phone,
       status: result.status,
-      availability_status: result.availability_status,
-      availability_details: result.availability_details,
-      summary: result.summary,
+      availability_status: result.availability_status || result.availability_found ? 'available' : 'unavailable',
+      availability_details: result.availability_details || result.call_summary,
+      summary: result.summary || result.call_summary,
       sentiment: result.sentiment,
-      call_date: result.call_date,
+      call_date: result.call_date || result.created_at,
       recording_url: result.recording_url,
       user_id: result.user_id,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "provider_npi", ignoreDuplicates: false },
+    { onConflict: "call_id", ignoreDuplicates: false },
   )
 
   if (error) {

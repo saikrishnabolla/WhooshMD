@@ -105,7 +105,52 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Handle bulk fetch request
+    // Handle call_ids polling (new functionality)
+    if (body.call_ids && Array.isArray(body.call_ids)) {
+      const { call_ids } = body
+
+      if (call_ids.length === 0) {
+        return NextResponse.json({ error: "Invalid call_ids" }, { status: 400 })
+      }
+
+      // Fetch results by call_id from Supabase
+      const { data, error } = await supabaseAdmin
+        .from("call_results")
+        .select("*")
+        .in("call_id", call_ids)
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Supabase error:", error)
+        return NextResponse.json({ error: "Failed to fetch call results" }, { status: 500 })
+      }
+
+      const results =
+        data?.map((row) => ({
+          call_id: row.call_id,
+          provider_npi: row.provider_npi,
+          phone_number: row.phone_number,
+          status: row.status,
+          availability_status: row.availability_status,
+          availability_details: row.availability_details,
+          summary: row.summary,
+          sentiment: row.sentiment,
+          call_date: row.call_date,
+          recording_url: row.recording_url,
+        })) ?? []
+
+      return NextResponse.json({
+        success: true,
+        results,
+        debug: {
+          requested_call_ids: call_ids,
+          found_results: results.length,
+          source: "supabase",
+        },
+      })
+    }
+
+    // Handle bulk fetch request by provider NPIs (existing functionality)
     if (body.provider_npis && Array.isArray(body.provider_npis)) {
       const { provider_npis } = body
 

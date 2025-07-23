@@ -9,67 +9,74 @@ export async function POST(request: NextRequest) {
     
     console.log('🎯 Received Omnidim webhook event:', body);
 
-    // Get provider NPI from call mapping if available
-    let providerNpi = body.call_context?.provider_npi;
-    
-    if (!providerNpi && body.call_id) {
-      // Try to find provider NPI from call mapping
-      providerNpi = getProviderNpiByCallId(body.call_id);
-      console.log(`🔍 Found provider NPI from mapping: ${providerNpi}`);
+    // Extract call_id from webhook
+    const callId = body.call_id;
+    if (!callId) {
+      console.error('❌ No call_id found in webhook payload');
+      return NextResponse.json({ error: 'Missing call_id' }, { status: 400 });
     }
 
-    // Process the webhook event using timestamp correlation
-    const processedResult = OmnidimService.processWebhookEvent(body);
-    
-    if (processedResult) {
-      console.log('✅ Processed call result:', processedResult);
-      
-      // Store result in Supabase
-      const stored = await storeCallResult(processedResult);
-      
-      if (stored) {
-        console.log('💾 Successfully stored call result in Supabase');
-      } else {
-        console.error('❌ Failed to store call result in Supabase');
-      }
-      
-      // TODO: Send real-time update to frontend
-      // await sendRealTimeUpdate(processedResult);
-    } else {
-      console.warn('⚠️ Failed to process webhook event - missing required data');
+    // Get provider NPI from call mapping
+    let providerNpi = getProviderNpiByCallId(callId);
+    console.log(`🔍 Found provider NPI from mapping: ${providerNpi}`);
+
+    if (!providerNpi) {
+      console.warn('⚠️ No provider NPI found for call_id:', callId);
+      // Continue processing but log warning
     }
+
+    // Process the actual Omnidim webhook format
+    const callReport = body.call_report || {};
+    const extractedVars = callReport.extracted_variables || {};
+    
+    const processedResult = {
+      call_id: callId,
+      provider_npi: providerNpi || '',
+      phone_number: body.phone_number || '',
+      status: 'completed', // Omnidim sends completed calls
+      availability_status: extractedVars.availability_status || 'unknown',
+      availability_details: extractedVars.availability_details || '',
+      summary: callReport.summary || '',
+      sentiment: callReport.sentiment || '',
+      call_date: body.call_date || new Date().toISOString(),
+      recording_url: callReport.recording_url || '',
+      full_conversation: callReport.full_conversation || '',
+      user_id: '', // TODO: Get from call mapping if available
+      created_at: body.call_date || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    
+    console.log('✅ Processed call result:', processedResult);
+    
+    // Store result in Supabase
+    const stored = await storeCallResult(processedResult);
+    
+    if (stored) {
+      console.log('💾 Successfully stored call result in Supabase');
+    } else {
+      console.error('❌ Failed to store call result in Supabase');
+    }
+    
+    // TODO: Send real-time update to frontend
+    // await sendRealTimeUpdate(processedResult);
 
     // Handle different types of call results
-    const callStatus = body.status;
-    const callId = body.call_id;
+    const callStatus = 'completed'; // Omnidim webhooks are for completed calls
     
-    switch (callStatus) {
-      case 'in-progress':
-        console.log(`Call ${callId} is in progress`);
-        break;
-
-      case 'completed':
-        console.log(`Call ${callId} completed successfully`);
-        break;
-
-      case 'failed':
-        console.log(`Call ${callId} failed`);
-        break;
-
-      case 'no-answer':
-        console.log(`Call ${callId} - no answer`);
-        break;
-
-      default:
-        console.log('Unknown call status:', callStatus);
-    }
+    console.log(`Call ${callId} completed successfully`);
 
     // Respond with success
     return NextResponse.json({ 
-      received: true, 
-      processed: !!processedResult,
+      success: true,
+      message: 'Webhook processed successfully',
+      call_result: processedResult,
       timestamp: new Date().toISOString(),
-      call_id: body.call_id
+      call_id: callId,
+      debug: {
+        matched_provider: !!providerNpi,
+        availability_status: extractedVars.availability_status,
+        availability_details: extractedVars.availability_details
+      }
     });
 
   } catch (error) {
