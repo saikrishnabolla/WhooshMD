@@ -3,7 +3,7 @@ import { storeCallMapping, getProviderNpiByCallId, getAllMappings, getMappingCou
 
 export async function POST(request: NextRequest) {
   try {
-    const { call_id, provider_npi } = await request.json()
+    const { call_id, provider_npi, user_id } = await request.json()
 
     if (!call_id || !provider_npi) {
       return NextResponse.json({ error: "Missing call_id or provider_npi" }, { status: 400 })
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Mapping stored for call_id ${call_id}`,
+      user_id: user_id || null,
       total_mappings: getMappingCount(),
     })
   } catch (error) {
