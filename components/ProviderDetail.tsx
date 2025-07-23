@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { X, MapPin, Phone, Mail, Globe, Heart, Calendar, Stethoscope, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, Heart, Calendar, Stethoscope, ArrowLeft } from 'lucide-react';
 import { Provider } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { navigateToUrl } from '../lib/utils';
@@ -69,15 +69,7 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
     );
   };
 
-  const getFormattedAddress = (address: typeof primaryLocation) => {
-    if (!address) return '';
-    
-    let formatted = address.address_1;
-    if (address.address_2) formatted += `, ${address.address_2}`;
-    formatted += `<br>${address.city}, ${address.state} ${address.postal_code}`;
-    
-    return formatted;
-  };
+
 
   const getGoogleMapsUrl = (address: typeof primaryLocation) => {
     if (!address) return '';

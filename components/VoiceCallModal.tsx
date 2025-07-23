@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Phone, X, Check, AlertCircle, Loader2, Calendar, Clock, Users } from 'lucide-react';
+import { Phone, X, Check, AlertCircle, Loader2, Users } from 'lucide-react';
 import { Provider } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { addVoiceCall } from '../services/storage';
@@ -15,7 +15,16 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
   const { user } = useAuth();
   const [status, setStatus] = useState<'idle' | 'initiating' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<{
+    provider_number: string;
+    provider_name: string;
+    status: string;
+    call_id?: string;
+    phone?: string;
+    original_phone?: string;
+    message?: string;
+    error?: string;
+  }[]>([]);
   const [appointmentType, setAppointmentType] = useState<string>('general consultation');
   const [currentCallProgress, setCurrentCallProgress] = useState<{
     current: number;
@@ -170,7 +179,7 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <h4 className="font-medium text-blue-900 mb-2">How it works:</h4>
                   <ul className="text-sm text-blue-700 space-y-1 text-left">
-                    <li>• AI agent calls each provider's office</li>
+                    <li>• AI agent calls each provider&apos;s office</li>
                     <li>• Asks about new patient availability this week</li>
                     <li>• Records available appointment slots and types</li>
                     <li>• Provides you with a detailed availability report</li>
@@ -213,7 +222,7 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                   <p className="text-sm text-blue-700">
-                    <strong>What's next:</strong> Check your dashboard in a few minutes for availability results. You'll see detailed appointment slots and provider information.
+                    <strong>What&apos;s next:</strong> Check your dashboard in a few minutes for availability results. You&apos;ll see detailed appointment slots and provider information.
                   </p>
                 </div>
               </div>

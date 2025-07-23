@@ -1,15 +1,33 @@
 import { supabaseAdmin } from "@/lib/supabase"
 
+interface CallResult {
+  call_id: string;
+  provider_npi: string;
+  phone_number?: string;
+  provider_phone?: string;
+  status: string;
+  availability_status?: string;
+  availability_found?: boolean;
+  availability_details?: string;
+  call_summary?: string;
+  summary?: string;
+  sentiment?: string;
+  call_date?: string;
+  created_at?: string;
+  recording_url?: string;
+  user_id: string;
+}
+
 /**
  * In-memory cache (kept for backward compatibility with other modules
  * that still import { callResults }).
  */
-export const callResults = new Map<number, any>()
+export const callResults = new Map<number, CallResult>()
 
 /**
  * Persists a call result in Supabase **and** the in-memory map.
  */
-export async function storeCallResult(result: any) {
+export async function storeCallResult(result: CallResult) {
   // Update memory cache (legacy)
   callResults.set(Date.now(), result)
 

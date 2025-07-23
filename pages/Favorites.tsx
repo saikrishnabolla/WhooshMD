@@ -15,6 +15,12 @@ const Favorites: React.FC = () => {
   const [favorites, setFavorites] = useState<FavoriteProvider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
+  useEffect(() => {
+    if (user) {
+      setFavorites(getFavorites(user.id));
+    }
+  }, [user]);
+
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -23,10 +29,6 @@ const Favorites: React.FC = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    setFavorites(getFavorites(user.id));
-  }, [user]);
 
   const handleViewDetails = (provider: Provider) => {
     setSelectedProvider(provider);

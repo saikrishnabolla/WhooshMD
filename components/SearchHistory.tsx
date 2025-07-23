@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Clock, X, Search, ChevronDown } from 'lucide-react';
+import { Clock, Search, ChevronDown } from 'lucide-react';
 import { SearchHistoryItem, SearchParams } from '../types';
 import { getSearchHistory, clearSearchHistory } from '../services/storage';
 

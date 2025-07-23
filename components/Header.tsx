@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Stethoscope, Menu, X, User } from 'lucide-react';
+import { Stethoscope, Menu, X } from 'lucide-react';
 import { Link } from '../components/ui/Link';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';

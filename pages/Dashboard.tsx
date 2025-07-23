@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Phone, Calendar, Clock, AlertCircle, RefreshCw, ExternalLink, Eye, Bell } from 'lucide-react';
+import { Phone, Calendar, Clock, AlertCircle, RefreshCw, Eye, Bell } from 'lucide-react';
 import AvailabilityResults from '../components/AvailabilityResults';
 import { getVoiceCalls, LocalVoiceCall } from '../services/storage';
 

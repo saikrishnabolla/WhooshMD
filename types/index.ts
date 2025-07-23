@@ -88,59 +88,7 @@ export interface FavoriteProvider {
   timestamp: number;
 }
 
-// Vapi Integration Types
-export interface VapiCallRequest {
-  assistantId: string;
-  phoneNumberId: string;
-  customer: {
-    number: string;
-    name?: string;
-  };
-  metadata?: {
-    provider_npi: string;
-    provider_name: string;
-    user_id: string;
-    appointment_type?: string;
-    call_type?: string;
-    preferred_times?: string[];
-  };
-}
 
-export interface VapiCallResponse {
-  id: string;
-  status: string;
-  assistantId: string;
-  phoneNumberId: string;
-  customer: {
-    number: string;
-    name?: string;
-  };
-  metadata?: any;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface VapiWebhookEvent {
-  type: 'status-update' | 'transcript' | 'function-call' | 'call-end' | 'call-start';
-  call: {
-    id: string;
-    status: string;
-    assistantId: string;
-    phoneNumberId: string;
-    customer: any;
-    metadata?: any;
-  };
-  message?: {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-    transcript?: string;
-  };
-  functionCall?: {
-    name: string;
-    parameters: any;
-  };
-  timestamp: string;
-}
 
 // Enhanced Voice Call Types
 export interface VoiceCallResult {

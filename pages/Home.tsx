@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from '../components/ui/Link';
 import { 
   Search, ArrowRight, Shield, Heart, Clock, 
-  CheckCircle, Calendar, Phone, Play, Zap, Award, MapPin, Loader2
+  CheckCircle, Calendar, Phone, Play, Zap, Award, Loader2
 } from 'lucide-react';
 
 const Home: React.FC = () => {
@@ -179,7 +179,7 @@ const Home: React.FC = () => {
               <span className="block font-medium">finally done right</span>
             </h3>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              We've solved the most frustrating parts of finding and booking healthcare appointments
+              We&apos;ve solved the most frustrating parts of finding and booking healthcare appointments
             </p>
           </div>
           
@@ -210,7 +210,7 @@ const Home: React.FC = () => {
                 <Shield className="w-8 h-8 text-red-500" />
               </div>
               <h4 className="text-lg font-medium text-gray-900 mb-3">Insurance Surprises</h4>
-              <p className="text-gray-600 mb-4">Find out after booking that your insurance isn't accepted</p>
+              <p className="text-gray-600 mb-4">Find out after booking that your insurance isn&apos;t accepted</p>
               <div className="text-sm text-primary-600 font-medium">→ Now: Instant coverage check</div>
             </div>
           </div>
@@ -274,7 +274,7 @@ const Home: React.FC = () => {
               </div>
               <div className="text-sm font-semibold text-gray-400 mb-2">01</div>
               <h4 className="text-xl font-medium text-gray-900 mb-3">Tell us what you need</h4>
-              <p className="text-gray-600 leading-relaxed">Enter your location, insurance, and the type of care you're looking for.</p>
+              <p className="text-gray-600 leading-relaxed">Enter your location, insurance, and the type of care you&apos;re looking for.</p>
             </div>
             
             <div className="text-center fade-in delay-100">
@@ -369,7 +369,7 @@ const Home: React.FC = () => {
               <span className="block font-medium">healthcare scheduling reimagined?</span>
             </h2>
             <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-              Join thousands who've already discovered a better way to access healthcare.
+              Join thousands who&apos;ve already discovered a better way to access healthcare.
             </p>
             <Link 
               href="/search" 
