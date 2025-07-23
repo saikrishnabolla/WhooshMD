@@ -58,12 +58,15 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
         };
       });
       
-      const apiUrl = '/api/voice-agent';
+      const apiUrl = '/api/make-calls';
       
       const requestBody = {
-        providers: providerData,
+        providers: providerData.map(p => ({
+          number: p.number,
+          name: p.name,
+          specialties: 'General Healthcare'
+        })),
         user_id: user.id,
-        appointment_type: appointmentType,
       };
       
       const response = await fetch(apiUrl, {
@@ -96,7 +99,7 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
       
       setResults(data.results || []);
       
-      // Store successful voice calls in local storage
+      // Store successful calls - will transition to Supabase
       if (data.results && Array.isArray(data.results)) {
         for (const result of data.results) {
           if (result.status === 'success') {
@@ -104,14 +107,15 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
               addVoiceCall({
                 provider_npi: result.provider_number,
                 provider_name: result.provider_name,
-                provider_phone: result.phone,
+                provider_phone: '+14153790645', // Test number
                 status: 'initiated',
                 availability_found: false,
                 call_id: result.call_id,
+                dispatch_timestamp: result.dispatch_timestamp,
                 message: result.message,
               }, user.id);
             } catch (storageError) {
-              console.error('Error storing voice call:', storageError);
+              console.error('Error storing call:', storageError);
             }
           }
         }
@@ -143,7 +147,7 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
             </div>
             
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Voice Agent Appointment Verification
+              AI Appointment Verification
             </h3>
             
             {limitedProviders.length < providers.length && (
@@ -160,15 +164,15 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
             {status === 'idle' && (
               <div>
                 <p className="text-gray-600 mb-4">
-                  Our AI voice agent will call {limitedProviders.length} provider{limitedProviders.length > 1 ? 's' : ''} to verify appointment availability in real-time.
+                  Our AI agent will call {limitedProviders.length} provider{limitedProviders.length > 1 ? 's' : ''} to verify appointment availability in real-time.
                 </p>
                 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <h4 className="font-medium text-blue-900 mb-2">How it works:</h4>
                   <ul className="text-sm text-blue-700 space-y-1 text-left">
                     <li>• AI agent calls each provider's office</li>
-                    <li>• Asks about new patient availability</li>
-                    <li>• Records available appointment slots</li>
+                    <li>• Asks about new patient availability this week</li>
+                    <li>• Records available appointment slots and types</li>
                     <li>• Provides you with a detailed availability report</li>
                   </ul>
                 </div>
@@ -184,11 +188,11 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
                   <div className="flex items-center justify-center mb-2">
                     <Phone className="w-5 h-5 text-blue-600 mr-2" />
                     <span className="text-sm font-medium text-blue-700">
-                      Voice agent is active
+                      AI agent is active
                     </span>
                   </div>
                   <div className="text-xs text-blue-600">
-                    Processing {currentCallProgress.current + 1} of {currentCallProgress.total} providers
+                    Dispatching calls to {currentCallProgress.total} providers
                   </div>
                 </div>
               </div>
@@ -294,19 +298,19 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
 
           {/* Action Buttons */}
           {status === 'idle' && (
-            <button
-              onClick={initiateVoiceCalls}
-              className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              <Phone size={20} className="inline mr-2" />
-              Start Appointment Verification Calls
-            </button>
+                          <button
+                onClick={initiateVoiceCalls}
+                className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                <Phone size={20} className="inline mr-2" />
+                Start AI Appointment Verification
+              </button>
           )}
 
           {status === 'initiating' && (
             <div className="text-center">
               <Loader2 size={32} className="animate-spin text-primary-600 mx-auto mb-4" />
-              <p className="text-gray-600">Initiating voice agent calls...</p>
+              <p className="text-gray-600">Dispatching AI calls...</p>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
                 <div 
                   className="bg-primary-600 h-2 rounded-full transition-all duration-300"

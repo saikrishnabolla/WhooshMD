@@ -63,39 +63,39 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, onViewDetails }) 
       className="glass-card rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group hover-lift h-full"
       onClick={() => onViewDetails(provider)}
     >
-      <div className="p-4 sm:p-6 cursor-pointer group h-full flex flex-col">
-        <div className="p-3 sm:p-5 border-b border-gray-100">
+      <div className="p-6 cursor-pointer group h-full flex flex-col">
+        <div className="p-4 border-b border-gray-100">
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2">
+            <div className="flex-1 pr-4">
+              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2">
                 {getProviderName()}
               </h3>
               {primaryTaxonomy && (
-                <div className="flex items-center mt-1 text-sm text-gray-500">
-                  <Stethoscope size={14} className="mr-1" />
-                  <span className="truncate max-w-[200px] sm:max-w-[250px]">{primaryTaxonomy.desc}</span>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Stethoscope size={16} className="mr-2 flex-shrink-0" />
+                  <span className="truncate">{primaryTaxonomy.desc}</span>
                 </div>
               )}
             </div>
             <button
               onClick={toggleFavorite}
-              className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
+              className={`p-2 rounded-full flex-shrink-0 ${
                 favorite 
                   ? 'text-primary-600 hover:text-primary-700' 
                   : 'text-gray-400 hover:text-primary-600'
               } transition-colors focus:outline-none`}
               aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
             >
-              <Heart size={18} fill={favorite ? 'currentColor' : 'none'} />
+              <Heart size={20} fill={favorite ? 'currentColor' : 'none'} />
             </button>
           </div>
         </div>
         
-        <div className="p-3 sm:p-5 space-y-3 flex-1">
+        <div className="p-4 space-y-4 flex-1">
           {primaryAddress && (
             <div className="flex items-start">
-              <MapPin size={18} className="text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
-              <div className="text-xs sm:text-sm text-gray-700">
+              <MapPin size={18} className="text-gray-500 mt-1 mr-3 flex-shrink-0" />
+              <div className="text-sm text-gray-700 leading-relaxed">
                 <div>{primaryAddress.address_1}</div>
                 {primaryAddress.address_2 && <div>{primaryAddress.address_2}</div>}
                 <div>
@@ -107,10 +107,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, onViewDetails }) 
           
           {primaryAddress?.telephone_number && (
             <div className="flex items-center">
-              <Phone size={18} className="text-gray-500 mr-2 flex-shrink-0" />
+              <Phone size={18} className="text-gray-500 mr-3 flex-shrink-0" />
               <a 
                 href={`tel:${primaryAddress.telephone_number.replace(/[^\d]/g, '')}`}
-                className="text-xs sm:text-sm text-primary-600 hover:text-primary-800 transition-colors"
+                className="text-sm text-primary-600 hover:text-primary-800 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
                 {primaryAddress.telephone_number}
@@ -119,25 +119,25 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, onViewDetails }) 
           )}
           
           <div className="flex items-center">
-            <Calendar size={18} className="text-gray-500 mr-2 flex-shrink-0" />
-            <span className="text-xs sm:text-sm text-gray-600">
+            <Calendar size={18} className="text-gray-500 mr-3 flex-shrink-0" />
+            <span className="text-sm text-gray-600">
               Last Updated: {new Date(provider.basic.last_updated).toLocaleDateString()}
             </span>
           </div>
         </div>
         
-        <div className="bg-gray-50/50 backdrop-blur-sm p-3 flex justify-between items-center rounded-xl mt-auto">
+        <div className="bg-gray-50/50 backdrop-blur-sm p-4 flex justify-between items-center rounded-xl mt-auto">
           <span className="text-xs text-gray-500">
             NPI: {provider.number}
           </span>
           <button 
-            className="text-xs sm:text-sm text-primary-600 hover:text-primary-800 flex items-center transition-colors"
+            className="text-sm text-primary-600 hover:text-primary-800 flex items-center transition-colors font-medium"
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails(provider);
             }}
           >
-            View Details <ExternalLink size={14} className="ml-1" />
+            View Details <ExternalLink size={16} className="ml-1" />
           </button>
         </div>
       </div>
