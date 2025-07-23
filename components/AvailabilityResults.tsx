@@ -339,7 +339,7 @@ const AvailabilityResults: React.FC<AvailabilityResultsProps> = ({ calls, onClos
                   <div>
                     <p className="font-medium text-gray-900">{call.provider_name}</p>
                     <p className="text-sm text-gray-600">NPI: {call.provider_npi}</p>
-                    <p className="text-sm text-gray-600">Voice agent is calling to check availability...</p>
+                    <p className="text-sm text-gray-600">AI agent is checking availability...</p>
                   </div>
                 </div>
                 <div className="text-sm text-yellow-600">
@@ -416,7 +416,7 @@ const AvailabilityResults: React.FC<AvailabilityResultsProps> = ({ calls, onClos
         <div className="text-center py-12">
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No availability checks found</h3>
-          <p className="text-gray-600">Start searching for providers and use the voice agent call feature to check availability.</p>
+          <p className="text-gray-600">Start searching for providers and use the AI call feature to check availability.</p>
         </div>
       )}
     </div>

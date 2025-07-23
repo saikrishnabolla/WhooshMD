@@ -233,28 +233,29 @@ const Search: React.FC = () => {
                   className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <Phone size={18} />
-                  Check Availability for {selectedProviders.length} Provider{selectedProviders.length > 1 ? 's' : ''}
+                  Check Availability ({selectedProviders.length} provider{selectedProviders.length > 1 ? 's' : ''})
                 </button>
               </div>
             )}
 
             {/* Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
               {allResults.map((provider) => (
-                <div key={provider.number} className="relative">
+                <div key={provider.number} className="relative group">
                   <ProviderCard 
                     provider={provider} 
                     onViewDetails={handleViewDetails}
                   />
                   <button
                     onClick={() => toggleProviderSelection(provider)}
-                    className={`absolute top-4 right-4 p-2.5 rounded-full transition-all shadow-lg ${
+                    className={`absolute top-4 right-4 p-3 rounded-full transition-all shadow-lg transform hover:scale-110 ${
                       selectedProviders.some(p => p.number === provider.number)
                         ? 'bg-primary-600 text-white scale-110'
-                        : 'bg-white text-gray-400 hover:text-primary-600 hover:bg-primary-50'
+                        : 'bg-white text-gray-400 hover:text-primary-600 hover:bg-primary-50 group-hover:bg-white'
                     }`}
+                    title={selectedProviders.some(p => p.number === provider.number) ? 'Remove from availability check' : 'Add to availability check'}
                   >
-                    <Phone size={16} />
+                    <Phone size={18} />
                   </button>
                 </div>
               ))}

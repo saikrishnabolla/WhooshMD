@@ -35,6 +35,7 @@ export interface LocalVoiceCall {
   message?: string;
   appointment_type_requested?: string; // What type was requested
   verified_at?: string;
+  dispatch_timestamp?: number; // Omnidim dispatch timestamp for webhook correlation
 }
 
 // Voice Calls management
