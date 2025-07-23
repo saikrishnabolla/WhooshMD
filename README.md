@@ -55,11 +55,8 @@ This application has been simplified to use:
 
 The application uses Omnidim for AI-powered voice calling functionality:
 
-- **Current**: Mock voice agent calls for demonstration (legacy endpoint)
 - **Production**: Omnidim integration for real voice calls
 - **Local Storage**: Call history is stored locally in the browser
-
-The legacy voice agent endpoint at `/api/voice-agent` provides mock data for testing purposes. Production voice calling functionality has been moved to Omnidim.
 
 ## Local Storage
 
