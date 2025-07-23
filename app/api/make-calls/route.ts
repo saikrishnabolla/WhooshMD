@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { omnidimService } from '../../../services/omnidim';
+import { callTimestamps } from "@/lib/call-storage"
 
 // Use the public URL if defined, otherwise fall back to the request origin
 function getBaseUrl(req: NextRequest) {
@@ -48,6 +49,15 @@ export async function POST(request: NextRequest) {
           const mockCallId = `mock_omnidim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           const dispatchTimestamp = Date.now();
           
+          // Store call timestamp for webhook matching
+          callTimestamps.set(provider.number, {
+            timestamp: dispatchTimestamp,
+            phone_number: provider.number, // NPI as provider identifier
+            provider_name: provider.name,
+            call_id: mockCallId,
+            user_id: user_id
+          })
+          
           // Simulate successful call dispatch
           callResults.push({
             provider_number: provider.number,
@@ -94,12 +104,23 @@ export async function POST(request: NextRequest) {
           const omnidimCall = omnidimCalls[i];
 
           if (omnidimCall && omnidimCall.status !== 'error') {
+            const dispatchTimestamp = Date.now();
+            
+            // Store call timestamp for webhook matching
+            callTimestamps.set(provider.number, {
+              timestamp: dispatchTimestamp,
+              phone_number: provider.number, // NPI as provider identifier  
+              provider_name: provider.name,
+              call_id: omnidimCall.call_id,
+              user_id: user_id
+            })
+            
             callResults.push({
               provider_number: provider.number,
               provider_name: provider.name,
               status: 'success',
               call_id: omnidimCall.call_id,
-              dispatch_timestamp: omnidimCall.dispatch_timestamp,
+              dispatch_timestamp: dispatchTimestamp,
               message: 'Omnidim call dispatched successfully',
               omnidim_call_data: omnidimCall
             });
@@ -120,6 +141,8 @@ export async function POST(request: NextRequest) {
         }, { status: 500 });
       }
     }
+
+    console.log(`📊 Stored ${callTimestamps.size} call timestamps for webhook matching`)
 
     return NextResponse.json({
       success: true,
