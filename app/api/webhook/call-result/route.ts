@@ -1,29 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OmnidimService } from '../../../../services/omnidim';
+import { storeCallResult } from '@/lib/call-results';
+import { getProviderNpiByCallId } from '@/lib/call-mapping';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    console.log('Received Omnidim webhook event:', body);
+    console.log('🎯 Received Omnidim webhook event:', body);
+
+    // Get provider NPI from call mapping if available
+    let providerNpi = body.call_context?.provider_npi;
+    
+    if (!providerNpi && body.call_id) {
+      // Try to find provider NPI from call mapping
+      providerNpi = getProviderNpiByCallId(body.call_id);
+      console.log(`🔍 Found provider NPI from mapping: ${providerNpi}`);
+    }
 
     // Process the webhook event using timestamp correlation
     const processedResult = OmnidimService.processWebhookEvent(body);
     
     if (processedResult) {
-      console.log('Processed call result:', processedResult);
+      console.log('✅ Processed call result:', processedResult);
       
-      // TODO: Store result in Supabase
-      // await saveCallResultToSupabase(processedResult);
+      // Store result in Supabase
+      const stored = await storeCallResult(processedResult);
       
-      // For now, store in browser storage (will be replaced with Supabase)
-      if (typeof window !== 'undefined') {
-        const key = `call_result_${processedResult.provider_npi}`;
-        localStorage.setItem(key, JSON.stringify(processedResult));
+      if (stored) {
+        console.log('💾 Successfully stored call result in Supabase');
+      } else {
+        console.error('❌ Failed to store call result in Supabase');
       }
       
       // TODO: Send real-time update to frontend
       // await sendRealTimeUpdate(processedResult);
+    } else {
+      console.warn('⚠️ Failed to process webhook event - missing required data');
     }
 
     // Handle different types of call results

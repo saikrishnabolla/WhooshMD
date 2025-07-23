@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { omnidimService } from '../../../services/omnidim';
 
+// Use the public URL if defined, otherwise fall back to the request origin
+function getBaseUrl(req: NextRequest) {
+  return process.env.NEXT_PUBLIC_APP_URL ?? `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+}
+
 // Call Dispatch Configuration
 const CALL_DISPATCH_CONFIG = {
   enabled: true,
@@ -70,6 +75,8 @@ export async function POST(request: NextRequest) {
     } else {
       // Real Omnidim integration
       try {
+        const webhookUrl = `${getBaseUrl(request)}/api/webhook/call-result`;
+        
         const omnidimProviders = limitedProviders.map(p => ({
           name: p.name,
           npi: p.number,
@@ -78,7 +85,8 @@ export async function POST(request: NextRequest) {
 
         const omnidimCalls = await omnidimService.createBatchAppointmentCalls(
           omnidimProviders,
-          user_id
+          user_id,
+          webhookUrl
         );
 
         for (let i = 0; i < limitedProviders.length; i++) {

@@ -7,6 +7,7 @@ const OMNIDIM_CONFIG = {
   agentId: 1060,
   testPhoneNumber: '+14153790645', // Currently hardcoded for testing
   webhookUrl: process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://yourapp.com/api/webhook/call-result',
+  apiKey: process.env.OMNIDIM_API_KEY,
 };
 
 export interface OmnidimCallRequest {
@@ -45,8 +46,13 @@ export class OmnidimService {
     providerName: string,
     providerNpi: string,
     specialties: string,
-    userId: string
+    userId: string,
+    webhookUrl?: string
   ): Promise<OmnidimCallResponse> {
+    if (!OMNIDIM_CONFIG.apiKey) {
+      throw new Error('Omnidim API key not configured');
+    }
+
     const dispatchTimestamp = Date.now();
     
     const callRequest: OmnidimCallRequest = {
@@ -57,7 +63,7 @@ export class OmnidimService {
         provider_npi: providerNpi,
         specialties: specialties,
         purpose: "Check availability for new patients this week",
-        webhook_url: this.webhookUrl,
+        webhook_url: webhookUrl || this.webhookUrl,
         dispatch_timestamp: dispatchTimestamp,
       },
     };
@@ -68,16 +74,18 @@ export class OmnidimService {
         callRequest,
         {
           headers: {
+            Authorization: `Bearer ${OMNIDIM_CONFIG.apiKey}`,
             'Content-Type': 'application/json',
           },
         }
       );
 
-      // Store dispatch timestamp for webhook matching
-      this.storeDispatchTimestamp(providerNpi, dispatchTimestamp);
+      // Store call mapping for webhook correlation
+      const callId = response.data.call_id || `omnidim_${dispatchTimestamp}`;
+      await this.storeCallMapping(callId, providerNpi);
 
       return {
-        call_id: response.data.call_id || `omnidim_${dispatchTimestamp}`,
+        call_id: callId,
         status: 'dispatched',
         dispatch_timestamp: dispatchTimestamp,
         message: 'Call dispatched successfully',
@@ -97,7 +105,8 @@ export class OmnidimService {
       npi: string;
       specialties: string;
     }>,
-    userId: string
+    userId: string,
+    webhookUrl?: string
   ): Promise<OmnidimCallResponse[]> {
     const calls: OmnidimCallResponse[] = [];
     const maxBatchSize = 6; // Limit to 6 providers
@@ -111,7 +120,8 @@ export class OmnidimService {
           provider.name,
           provider.npi,
           provider.specialties,
-          userId
+          userId,
+          webhookUrl
         );
         calls.push(call);
         
@@ -169,22 +179,32 @@ export class OmnidimService {
     }
   }
 
-  /**
-   * Store dispatch timestamp for webhook matching
-   */
-  private storeDispatchTimestamp(providerNpi: string, timestamp: number): void {
-    // Store in browser localStorage for now, will be replaced with Supabase
-    const key = `omnidim_dispatch_${providerNpi}`;
-    localStorage.setItem(key, timestamp.toString());
-  }
+
 
   /**
-   * Get stored dispatch timestamp for webhook matching
+   * Store call mapping for webhook correlation
    */
-  static getDispatchTimestamp(providerNpi: string): number | null {
-    const key = `omnidim_dispatch_${providerNpi}`;
-    const timestamp = localStorage.getItem(key);
-    return timestamp ? parseInt(timestamp) : null;
+  private async storeCallMapping(callId: string, providerNpi: string): Promise<void> {
+    try {
+      const response = await fetch('/api/call-mapping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          call_id: callId,
+          provider_npi: providerNpi,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to store call mapping:', response.statusText);
+      } else {
+        console.log(`✅ Stored call mapping: ${callId} -> ${providerNpi}`);
+      }
+    } catch (error) {
+      console.error('Error storing call mapping:', error);
+    }
   }
 
   private delay(ms: number): Promise<void> {
