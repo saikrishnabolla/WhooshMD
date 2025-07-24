@@ -5,10 +5,12 @@ import { Heart, Trash2, Loader2 } from 'lucide-react';
 import ProviderCard from '../components/ProviderCard';
 import ProviderDetail from '../components/ProviderDetail';
 import { Provider, FavoriteProvider } from '../types';
+import { ProviderSummary } from '../types/community';
 import { getFavorites, removeFavorite, syncLocalStorageToSupabase } from '../services/favorites';
 import { Link } from '../components/ui/Link';
 import { useAuth } from '../context/AuthContext';
 import AuthUI from '../components/AuthUI';
+import communityService from '../services/community';
 
 const Favorites: React.FC = () => {
   const { user } = useAuth();
@@ -16,6 +18,7 @@ const Favorites: React.FC = () => {
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [communitySummaries, setCommunitySummaries] = useState<Record<string, ProviderSummary>>({});
 
   const loadFavorites = useCallback(async () => {
     if (!user) return;
@@ -30,6 +33,20 @@ const Favorites: React.FC = () => {
       // Load favorites from Supabase
       const userFavorites = await getFavorites(user.id);
       setFavorites(userFavorites);
+      
+      // Load community summaries for each favorite
+      const summaries: Record<string, ProviderSummary> = {};
+      for (const favorite of userFavorites) {
+        try {
+          const summary = await communityService.community.getProviderSummary(favorite.provider.number);
+          if (summary) {
+            summaries[favorite.provider.number] = summary;
+          }
+        } catch (err) {
+          console.error(`Error loading community summary for provider ${favorite.provider.number}:`, err);
+        }
+      }
+      setCommunitySummaries(summaries);
     } catch (err) {
       console.error('Error loading favorites:', err);
       setError('Failed to load favorites. Please try again.');
@@ -131,7 +148,9 @@ const Favorites: React.FC = () => {
               <div key={favorite.id} className="relative group">
                 <ProviderCard 
                   provider={favorite.provider} 
-                  onViewDetails={handleViewDetails} 
+                  onViewDetails={handleViewDetails}
+                  communitySummary={communitySummaries[favorite.provider.number] || null}
+                  showSelectionCheckbox={false}
                 />
                 <button
                   onClick={() => handleRemoveFavorite(favorite.id)}

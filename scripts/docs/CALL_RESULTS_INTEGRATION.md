@@ -157,7 +157,7 @@ NEXT_PUBLIC_APP_URL=https://yourapp.com
 
 1. Run the SQL schema in your Supabase dashboard:
    ```sql
-   -- Execute the contents of database-schema.sql
+   -- Execute the contents of scripts/sql/database-schema.sql
    ```
 
 2. Enable Row Level Security policies for user data protection.

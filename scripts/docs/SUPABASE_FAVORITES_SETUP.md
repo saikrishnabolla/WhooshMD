@@ -21,11 +21,11 @@ Run the SQL file in your Supabase SQL Editor:
 ```bash
 # Open your Supabase dashboard
 # Go to SQL Editor
-# Copy and paste the content from favorites-schema.sql
+# Copy and paste the content from scripts/sql/favorites-schema.sql
 # Click "Run"
 ```
 
-Or directly execute the `favorites-schema.sql` file in your Supabase dashboard.
+Or directly execute the `scripts/sql/favorites-schema.sql` file in your Supabase dashboard.
 
 ### 2. Verify Table Creation
 
