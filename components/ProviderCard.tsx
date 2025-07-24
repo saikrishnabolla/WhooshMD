@@ -197,7 +197,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
       )}
 
       {/* Main Card Content */}
-      <div className={`p-6 ${callResult ? 'pt-24' : 'pt-16'} h-full flex flex-col cursor-pointer`}>
+      <div 
+        className={`p-6 ${callResult ? 'pt-24' : 'pt-16'} h-full flex flex-col cursor-pointer`}
+        onClick={handleSelectionChange}
+      >
         
         {/* Header */}
         <div className="mb-4">
@@ -293,7 +296,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           
           <button 
             className="flex items-center justify-center px-4 py-2 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 text-sm font-medium rounded-lg transition-colors"
-            onClick={handleViewDetails}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewDetails(e);
+            }}
           >
             <ExternalLink size={16} className="mr-2" />
             Details
