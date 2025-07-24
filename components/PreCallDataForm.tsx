@@ -1,10 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Shield, Phone, Clock, FileText } from 'lucide-react';
 
 interface PreCallData {
@@ -49,194 +43,190 @@ export const PreCallDataForm: React.FC<PreCallDataFormProps> = ({
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       {/* HIPAA Compliance Notice */}
       {showHipaaNotice && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="space-y-2">
-                <h3 className="font-semibold text-blue-900">Privacy Protected</h3>
-                <p className="text-sm text-blue-800">
-                  We only collect basic scheduling information. We never ask for medical details, 
-                  last names, or other protected health information. This keeps your information 
-                  safe and HIPAA compliant.
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowHipaaNotice(false)}
-                  className="text-blue-700 border-blue-300"
-                >
-                  Got it
-                </Button>
-              </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl shadow-lg p-6">
+          <div className="flex items-start gap-3">
+            <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="space-y-2">
+              <h3 className="font-semibold text-blue-900">Privacy Protected</h3>
+              <p className="text-sm text-blue-800">
+                We only collect basic scheduling information. We never ask for medical details, 
+                last names, or other protected health information. This keeps your information 
+                safe and HIPAA compliant.
+              </p>
+              <button 
+                onClick={() => setShowHipaaNotice(false)}
+                className="text-blue-700 border border-blue-300 px-3 py-1 rounded text-sm hover:bg-blue-100 transition-colors"
+              >
+                Got it
+              </button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Main Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Phone className="h-5 w-5" />
-            Clinic Availability Check
-          </CardTitle>
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Phone className="h-5 w-5 text-gray-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Clinic Availability Check</h2>
+          </div>
           <p className="text-sm text-gray-600">
-            Help us find clinics that match your needs. We'll check availability without sharing personal medical information.
+            Help us find clinics that match your needs. We&apos;ll check availability without sharing personal medical information.
           </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Patient Name (First Name Only) */}
-            <div className="space-y-2">
-              <Label htmlFor="patient_name" className="flex items-center gap-2">
-                Preferred Name
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="patient_name"
-                value={formData.patient_name}
-                onChange={(e) => updateField('patient_name', e.target.value)}
-                placeholder="First name or preferred name"
-                className="max-w-sm"
-                required
-              />
-              <p className="text-xs text-gray-500">
-                First name only - we don't need your last name for privacy reasons
-              </p>
-            </div>
+        </div>
 
-            {/* Insurance Type */}
-            <div className="space-y-2">
-              <Label>Insurance Type</Label>
-              <Select onValueChange={(value) => updateField('insurance_type', value)}>
-                <SelectTrigger className="max-w-sm">
-                  <SelectValue placeholder="Select insurance type (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Medicare">Medicare</SelectItem>
-                  <SelectItem value="Medicaid">Medicaid</SelectItem>
-                  <SelectItem value="Private Insurance">Private Insurance</SelectItem>
-                  <SelectItem value="Self-Pay">Self-Pay</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                  <SelectItem value="Not Sure">Not Sure</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">
-                This helps us check which clinics accept your insurance
-              </p>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Patient Name (First Name Only) */}
+          <div className="space-y-2">
+            <label htmlFor="patient_name" className="block text-sm font-medium text-gray-700">
+              Preferred Name
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              id="patient_name"
+              type="text"
+              value={formData.patient_name}
+              onChange={(e) => updateField('patient_name', e.target.value)}
+              placeholder="First name or preferred name"
+              className="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              required
+            />
+            <p className="text-xs text-gray-500">
+              First name only - we don&apos;t need your last name for privacy reasons
+            </p>
+          </div>
 
-            {/* Appointment Type */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                Appointment Type
-                <span className="text-red-500">*</span>
-              </Label>
-              <RadioGroup
-                value={formData.appointment_type}
-                onValueChange={(value) => updateField('appointment_type', value)}
-                className="grid grid-cols-1 md:grid-cols-2 gap-3"
-              >
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value="General checkup" id="general" />
-                  <Label htmlFor="general" className="cursor-pointer">
-                    General checkup/physical
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value="New patient consultation" id="consultation" />
-                  <Label htmlFor="consultation" className="cursor-pointer">
-                    New patient consultation
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value="Specialist referral" id="specialist" />
-                  <Label htmlFor="specialist" className="cursor-pointer">
-                    Specialist referral
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value="Follow-up care" id="followup" />
-                  <Label htmlFor="followup" className="cursor-pointer">
-                    Follow-up care
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+          {/* Insurance Type */}
+          <div className="space-y-2">
+            <label htmlFor="insurance_type" className="block text-sm font-medium text-gray-700">
+              Insurance Type
+            </label>
+            <select
+              id="insurance_type"
+              value={formData.insurance_type}
+              onChange={(e) => updateField('insurance_type', e.target.value)}
+              className="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">Select insurance type (optional)</option>
+              <option value="Medicare">Medicare</option>
+              <option value="Medicaid">Medicaid</option>
+              <option value="Private Insurance">Private Insurance</option>
+              <option value="Self-Pay">Self-Pay</option>
+              <option value="Other">Other</option>
+              <option value="Not Sure">Not Sure</option>
+            </select>
+            <p className="text-xs text-gray-500">
+              This helps us check which clinics accept your insurance
+            </p>
+          </div>
 
-            {/* Preferred Timeframe */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Preferred Timeframe
-              </Label>
-              <Select onValueChange={(value) => updateField('preferred_date', value)}>
-                <SelectTrigger className="max-w-sm">
-                  <SelectValue placeholder="When would you like to be seen?" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="This week">This week</SelectItem>
-                  <SelectItem value="Next week">Next week</SelectItem>
-                  <SelectItem value="Within 2 weeks">Within 2 weeks</SelectItem>
-                  <SelectItem value="Flexible">Flexible</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Appointment Type */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">
+              Appointment Type
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                { value: 'General checkup', label: 'General checkup/physical' },
+                { value: 'New patient consultation', label: 'New patient consultation' },
+                { value: 'Specialist referral', label: 'Specialist referral' },
+                { value: 'Follow-up care', label: 'Follow-up care' }
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="appointment_type"
+                    value={option.value}
+                    checked={formData.appointment_type === option.value}
+                    onChange={(e) => updateField('appointment_type', e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            {/* Urgency Level */}
-            <div className="space-y-3">
-              <Label>How urgent is this appointment?</Label>
-              <RadioGroup
-                value={formData.urgency}
-                onValueChange={(value) => updateField('urgency', value)}
-                className="flex gap-6"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Routine" id="routine" />
-                  <Label htmlFor="routine" className="cursor-pointer">Routine</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Within 2 weeks" id="soon" />
-                  <Label htmlFor="soon" className="cursor-pointer">Within 2 weeks</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ASAP" id="urgent" />
-                  <Label htmlFor="urgent" className="cursor-pointer">ASAP</Label>
-                </div>
-              </RadioGroup>
-            </div>
+          {/* Preferred Timeframe */}
+          <div className="space-y-2">
+            <label htmlFor="preferred_date" className="block text-sm font-medium text-gray-700">
+              <Clock className="h-4 w-4 inline mr-1" />
+              Preferred Timeframe
+            </label>
+            <select
+              id="preferred_date"
+              value={formData.preferred_date}
+              onChange={(e) => updateField('preferred_date', e.target.value)}
+              className="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">When would you like to be seen?</option>
+              <option value="This week">This week</option>
+              <option value="Next week">Next week</option>
+              <option value="Within 2 weeks">Within 2 weeks</option>
+              <option value="Flexible">Flexible</option>
+            </select>
+          </div>
 
-            {/* Submit Button */}
-            <div className="pt-4">
-              <Button
-                type="submit"
-                disabled={!isFormValid || isLoading}
-                className="w-full md:w-auto"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Checking Clinics...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Start Availability Check
-                  </>
-                )}
-              </Button>
+          {/* Urgency Level */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">
+              How urgent is this appointment?
+            </label>
+            <div className="flex gap-6">
+              {[
+                { value: 'Routine', label: 'Routine' },
+                { value: 'Within 2 weeks', label: 'Within 2 weeks' },
+                { value: 'ASAP', label: 'ASAP' }
+              ].map((option) => (
+                <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="urgency"
+                    value={option.value}
+                    checked={formData.urgency === option.value}
+                    onChange={(e) => updateField('urgency', e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            {/* Privacy Notice */}
-            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
-              <strong>Privacy Note:</strong> We only use this information to check clinic availability. 
-              We never share medical details or personal information with clinics. 
-              All data is encrypted and automatically deleted after your search.
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          {/* Submit Button */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={!isFormValid || isLoading}
+              className="w-full md:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Checking Clinics...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4" />
+                  Start Availability Check
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Privacy Notice */}
+          <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+            <strong>Privacy Note:</strong> We only use this information to check clinic availability. 
+            We never share medical details or personal information with clinics. 
+            All data is encrypted and automatically deleted after your search.
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
