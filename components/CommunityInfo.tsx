@@ -15,7 +15,10 @@ import {
   AlertCircle,
   Plus,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Phone,
+  Building,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Provider } from '../types';
@@ -30,12 +33,38 @@ interface CommunityInfoProps {
   onDataLoad?: (data: CommunityDataResponse | null) => void;
 }
 
+// Define Omnidim call result interface based on the database schema
+interface OmnidimCallResult {
+  call_id: string;
+  provider_npi: string;
+  phone_number: string;
+  status: string;
+  availability_status: string;
+  availability_details: string;
+  summary: string;
+  sentiment: string;
+  call_date: string;
+  clinic_name: string;
+  contact_person: string;
+  insurance_accepted: string;
+  appointment_types_available: string;
+  availability_timeframe: string;
+  specific_availability: string;
+  call_outcome_quality: string;
+  clinic_phone_verified: string;
+  follow_up_needed: string;
+  callback_instructions: string;
+  additional_requirements: string;
+}
+
 const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, onDataLoad }) => {
   const { user } = useAuth();
   const [communityData, setCommunityData] = useState<CommunityDataResponse | null>(null);
+  const [omnidimData, setOmnidimData] = useState<OmnidimCallResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [omnidimLoading, setOmnidimLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'availability' | 'insurance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'availability' | 'insurance' | 'callinfo'>('overview');
   const [showAllReviews, setShowAllReviews] = useState(false);
 
   const loadCommunityData = React.useCallback(async () => {
@@ -56,9 +85,37 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
     }
   }, [provider.number, user, onDataLoad]);
 
+  const loadOmnidimData = React.useCallback(async () => {
+    try {
+      setOmnidimLoading(true);
+      // Fetch Omnidim call results for this provider
+      const response = await fetch('/api/call-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider_npis: [provider.number]
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Get the most recent call result for this provider
+        const providerResult = data.results?.find((result: any) => result.provider_npi === provider.number);
+        setOmnidimData(providerResult || null);
+      }
+    } catch (err) {
+      console.error('Error loading Omnidim data:', err);
+    } finally {
+      setOmnidimLoading(false);
+    }
+  }, [provider.number]);
+
   useEffect(() => {
     loadCommunityData();
-  }, [loadCommunityData]);
+    loadOmnidimData();
+  }, [loadCommunityData, loadOmnidimData]);
 
   const handleVoteOnReview = async (reviewId: string, isHelpful: boolean) => {
     if (!user) return;
@@ -479,6 +536,184 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
     );
   };
 
+  const renderCallInfo = () => {
+    if (omnidimLoading) {
+      return (
+        <div className="space-y-4">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="space-y-3">
+              <div className="h-4 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (!omnidimData) {
+      return (
+        <div className="text-center py-8">
+          <Phone className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Call Information Available</h3>
+          <p className="text-gray-600">Call verification data will appear here when available.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Call Summary Card */}
+        {omnidimData.summary && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6">
+            <div className="flex items-center mb-4">
+              <FileText className="text-blue-600 mr-3" size={20} />
+              <h3 className="text-lg font-semibold text-gray-900">Call Summary</h3>
+            </div>
+            <p className="text-gray-700 leading-relaxed">{omnidimData.summary}</p>
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-blue-100">
+              <span className="text-sm text-gray-600">
+                Call Date: {new Date(omnidimData.call_date).toLocaleDateString()}
+              </span>
+              {omnidimData.sentiment && (
+                <span className={`text-sm px-2 py-1 rounded-full ${
+                  omnidimData.sentiment === 'positive' ? 'bg-green-100 text-green-800' :
+                  omnidimData.sentiment === 'negative' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {omnidimData.sentiment.charAt(0).toUpperCase() + omnidimData.sentiment.slice(1)} Call
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Info Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Availability Status */}
+          {omnidimData.availability_status && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <CheckCircle className="text-green-600 mr-2" size={16} />
+                <span className="font-medium text-gray-900">Availability Status</span>
+              </div>
+              <p className="text-sm text-gray-700">{omnidimData.availability_status}</p>
+              {omnidimData.availability_timeframe && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Timeframe: {omnidimData.availability_timeframe}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Insurance Acceptance */}
+          {omnidimData.insurance_accepted && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <Shield className="text-blue-600 mr-2" size={16} />
+                <span className="font-medium text-gray-900">Insurance Acceptance</span>
+              </div>
+              <p className="text-sm text-gray-700">{omnidimData.insurance_accepted}</p>
+            </div>
+          )}
+
+          {/* Appointment Types */}
+          {omnidimData.appointment_types_available && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <Calendar className="text-purple-600 mr-2" size={16} />
+                <span className="font-medium text-gray-900">Appointment Types</span>
+              </div>
+              <p className="text-sm text-gray-700">{omnidimData.appointment_types_available}</p>
+            </div>
+          )}
+
+          {/* Operating Hours */}
+          {omnidimData.specific_availability && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <Clock className="text-orange-600 mr-2" size={16} />
+                <span className="font-medium text-gray-900">Operating Hours</span>
+              </div>
+              <p className="text-sm text-gray-700">{omnidimData.specific_availability}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Clinic Information */}
+        {(omnidimData.clinic_name || omnidimData.contact_person || omnidimData.clinic_phone_verified) && (
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <Building className="text-gray-600 mr-3" size={20} />
+              <h3 className="text-lg font-semibold text-gray-900">Clinic Information</h3>
+            </div>
+            <div className="space-y-3">
+              {omnidimData.clinic_name && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Clinic Name: </span>
+                  <span className="text-sm text-gray-900">{omnidimData.clinic_name}</span>
+                </div>
+              )}
+              {omnidimData.contact_person && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Contact Person: </span>
+                  <span className="text-sm text-gray-900">{omnidimData.contact_person}</span>
+                </div>
+              )}
+              {omnidimData.clinic_phone_verified && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Phone Verified: </span>
+                  <span className={`text-sm ${
+                    omnidimData.clinic_phone_verified.toLowerCase() === 'yes' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {omnidimData.clinic_phone_verified}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Additional Information */}
+        {(omnidimData.callback_instructions || omnidimData.additional_requirements || omnidimData.follow_up_needed) && (
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Information</h3>
+            <div className="space-y-3">
+              {omnidimData.callback_instructions && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Callback Instructions: </span>
+                  <span className="text-sm text-gray-700">{omnidimData.callback_instructions}</span>
+                </div>
+              )}
+              {omnidimData.additional_requirements && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Additional Requirements: </span>
+                  <span className="text-sm text-gray-700">{omnidimData.additional_requirements}</span>
+                </div>
+              )}
+              {omnidimData.follow_up_needed && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Follow-up Needed: </span>
+                  <span className="text-sm text-gray-700">{omnidimData.follow_up_needed}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Call Quality */}
+        {omnidimData.call_outcome_quality && (
+          <div className="text-center py-3 border-t border-gray-200">
+            <span className="text-xs text-gray-500">
+              Call Quality: {omnidimData.call_outcome_quality}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -505,11 +740,12 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
     );
   }
 
-  // Only render the community section if there's actual community data
+  // Only render the community section if there's actual community data OR Omnidim call data
   const hasAnyData = communityData?.summary || 
                      (communityData?.reviews && communityData.reviews.length > 0) ||
                      communityData?.latest_availability ||
-                     (communityData?.insurance_plans && communityData.insurance_plans.length > 0);
+                     (communityData?.insurance_plans && communityData.insurance_plans.length > 0) ||
+                     omnidimData; // Include Omnidim data in the check
 
   if (!hasAnyData) {
     return null; // Hide the entire community section when no data exists
@@ -541,11 +777,12 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
             { key: 'overview', label: 'Overview', icon: TrendingUp },
             { key: 'reviews', label: 'Reviews', icon: MessageSquare },
             { key: 'availability', label: 'Availability', icon: Calendar },
-            { key: 'insurance', label: 'Insurance', icon: Shield }
+            { key: 'insurance', label: 'Insurance', icon: Shield },
+            { key: 'callinfo', label: 'Call Info', icon: Phone }
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => setActiveTab(key as 'overview' | 'reviews' | 'availability' | 'insurance')}
+              onClick={() => setActiveTab(key as 'overview' | 'reviews' | 'availability' | 'insurance' | 'callinfo')}
               className={`py-4 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
                 activeTab === key
                   ? 'border-primary-500 text-primary-600'
@@ -554,7 +791,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
             >
               <Icon size={16} className="mr-1 sm:mr-2" />
               <span className="hidden sm:inline">{label}</span>
-              <span className="sm:hidden">{key === 'overview' ? 'Overview' : key === 'reviews' ? 'Reviews' : key === 'availability' ? 'Avail.' : 'Insur.'}</span>
+              <span className="sm:hidden">{key === 'overview' ? 'Overview' : key === 'reviews' ? 'Reviews' : key === 'availability' ? 'Avail.' : key === 'insurance' ? 'Insur.' : 'Call Info'}</span>
             </button>
           ))}
         </nav>
@@ -566,6 +803,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
         {activeTab === 'reviews' && renderReviews()}
         {activeTab === 'availability' && renderAvailability()}
         {activeTab === 'insurance' && renderInsurance()}
+        {activeTab === 'callinfo' && renderCallInfo()}
       </div>
     </div>
   );
