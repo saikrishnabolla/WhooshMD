@@ -69,40 +69,45 @@ const Search: React.FC = () => {
   }, []);
 
   const fetchCallResults = React.useCallback(async () => {
-    if (!user || allResults.length === 0) return;
+    if (allResults.length === 0) return;
     
     try {
+      // Simple: get NPIs from search results and query Supabase directly
       const providerNpis = allResults.map(p => p.number);
-      const response = await fetch('/api/call-results', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider_npis: providerNpis,
-          user_id: user.id,
-        }),
-      });
+      
+      const { supabase } = await import('../lib/supabase');
+      const { data, error } = await supabase
+        .from('call_results')
+        .select('*')
+        .in('provider_npi', providerNpis)
+        .order('created_at', { ascending: false });
 
-      if (response.ok) {
-        const data = await response.json();
-        const resultsMap = new Map<string, CallResult>();
-        data.results?.forEach((result: CallResult) => {
-          resultsMap.set(result.provider_npi, result);
-        });
-        setCallResults(resultsMap);
+      if (error) {
+        console.error('Error fetching call results:', error);
+        return;
       }
+
+      // Create a map of NPI -> latest call result
+      const resultsMap = new Map<string, CallResult>();
+      data?.forEach((result) => {
+        // Only keep the latest result for each provider
+        if (!resultsMap.has(result.provider_npi)) {
+          resultsMap.set(result.provider_npi, result as CallResult);
+        }
+      });
+      
+      setCallResults(resultsMap);
     } catch (error) {
       console.error('Error fetching call results:', error);
     }
-  }, [user, allResults]);
+  }, [allResults]);
 
-  // Fetch call results for all providers
+  // Fetch call results for all providers after search
   useEffect(() => {
-    if (allResults.length > 0 && user) {
+    if (allResults.length > 0) {
       fetchCallResults();
     }
-  }, [allResults, user, fetchCallResults]);
+  }, [allResults, fetchCallResults]);
 
   const handleSearch = async (params: SearchParams, page: number = 1) => {
     setIsLoading(true);
@@ -211,19 +216,15 @@ const Search: React.FC = () => {
   const canLoadMore = currentPage < MAX_PAGES && allResults.length < totalResults;
   const hasMoreResults = totalResults > allResults.length;
 
-  // Sort results to show AI-verified providers first
+  // Simple sorting: providers with call results first
   const sortedResults = React.useMemo(() => {
     return [...allResults].sort((a, b) => {
-      const aResult = callResults.get(a.number);
-      const bResult = callResults.get(b.number);
+      const aHasResult = callResults.has(a.number);
+      const bHasResult = callResults.has(b.number);
       
-      // AI-verified providers first
-      if (aResult?.status === 'completed' && bResult?.status !== 'completed') return -1;
-      if (bResult?.status === 'completed' && aResult?.status !== 'completed') return 1;
-      
-      // Then providers currently being called
-      if (aResult?.status === 'calling' && bResult?.status !== 'calling') return -1;
-      if (bResult?.status === 'calling' && aResult?.status !== 'calling') return 1;
+      // Providers with call results first
+      if (aHasResult && !bHasResult) return -1;
+      if (bHasResult && !aHasResult) return 1;
       
       return 0;
     });

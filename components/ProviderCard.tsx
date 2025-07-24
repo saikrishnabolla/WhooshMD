@@ -19,6 +19,11 @@ interface CallResult {
   sentiment?: string;
   call_date?: string;
   recording_url?: string;
+  // Additional Omnidim fields
+  insurance_accepted?: string;
+  appointment_types_available?: string;
+  availability_timeframe?: string;
+  specific_availability?: string;
 }
 
 interface ProviderCardProps {
@@ -228,6 +233,33 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           <h3 className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors line-clamp-2 mb-2">
             {getProviderName()}
           </h3>
+          
+          {/* Availability Status Badge - colored dot and status */}
+          {callResult?.availability_status && (
+            <div className="flex items-center gap-2 mb-3">
+              <div className={`w-3 h-3 rounded-full ${
+                callResult.availability_status.toLowerCase().includes('accepting') || 
+                callResult.availability_status.toLowerCase().includes('available')
+                  ? 'bg-green-500' 
+                  : callResult.availability_status.toLowerCase().includes('no') || 
+                    callResult.availability_status.toLowerCase().includes('not')
+                    ? 'bg-red-500' 
+                    : 'bg-yellow-500'
+              }`} />
+              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                callResult.availability_status.toLowerCase().includes('accepting') || 
+                callResult.availability_status.toLowerCase().includes('available')
+                  ? 'bg-green-100 text-green-800 border border-green-200'
+                  : callResult.availability_status.toLowerCase().includes('no') || 
+                    callResult.availability_status.toLowerCase().includes('not')
+                    ? 'bg-red-100 text-red-800 border border-red-200'
+                    : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+              }`}>
+                {callResult.availability_status}
+              </div>
+            </div>
+          )}
+          
           {primaryTaxonomy && (
             <div className="flex items-center text-sm text-gray-600 mb-2">
               <Stethoscope size={16} className="mr-2 flex-shrink-0" />
@@ -333,8 +365,40 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 {availabilityInfo.status}
               </span>
             </div>
+            
+            {/* Detailed Omnidim Information */}
+            <div className="space-y-2 mt-3">
+              {callResult?.insurance_accepted && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Insurance:</span>
+                  <span className="ml-1 text-gray-600">{callResult.insurance_accepted}</span>
+                </div>
+              )}
+              
+              {callResult?.appointment_types_available && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Appointments:</span>
+                  <span className="ml-1 text-gray-600">{callResult.appointment_types_available}</span>
+                </div>
+              )}
+              
+              {callResult?.availability_timeframe && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Next Available:</span>
+                  <span className="ml-1 text-gray-600">{callResult.availability_timeframe}</span>
+                </div>
+              )}
+              
+              {callResult?.specific_availability && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Hours:</span>
+                  <span className="ml-1 text-gray-600">{callResult.specific_availability}</span>
+                </div>
+              )}
+            </div>
+            
             {availabilityInfo.summary && (
-              <p className="text-xs text-gray-600 line-clamp-2">
+              <p className="text-xs text-gray-600 line-clamp-2 mt-2 pt-2 border-t border-gray-200">
                 {availabilityInfo.summary}
               </p>
             )}
