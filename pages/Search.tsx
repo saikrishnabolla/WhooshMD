@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Phone, Search as SearchIcon, Loader2, ChevronRight, CheckCircle, Users, Sparkles } from 'lucide-react';
+import { Phone, Search as SearchIcon, Loader2, ChevronRight, Users, Sparkles } from 'lucide-react';
 import SearchForm from '../components/SearchForm';
 import ProviderCard from '../components/ProviderCard';
 import ProviderDetail from '../components/ProviderDetail';
@@ -48,7 +48,6 @@ const Search: React.FC = () => {
   const [totalResults, setTotalResults] = useState(0);
   const [originalSearchParams, setOriginalSearchParams] = useState<SearchParams | null>(null);
   const [callResults, setCallResults] = useState<Map<string, CallResult>>(new Map());
-  const [loadingCallResults, setLoadingCallResults] = useState(false);
 
   // Handle URL parameters on component mount
   useEffect(() => {
@@ -69,17 +68,9 @@ const Search: React.FC = () => {
     }
   }, []);
 
-  // Fetch call results for all providers
-  useEffect(() => {
-    if (allResults.length > 0 && user) {
-      fetchCallResults();
-    }
-  }, [allResults, user]);
-
-  const fetchCallResults = async () => {
-    if (!user) return;
+  const fetchCallResults = React.useCallback(async () => {
+    if (!user || allResults.length === 0) return;
     
-    setLoadingCallResults(true);
     try {
       const providerNpis = allResults.map(p => p.number);
       const response = await fetch('/api/call-results', {
@@ -103,10 +94,15 @@ const Search: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching call results:', error);
-    } finally {
-      setLoadingCallResults(false);
     }
-  };
+  }, [user, allResults]);
+
+  // Fetch call results for all providers
+  useEffect(() => {
+    if (allResults.length > 0 && user) {
+      fetchCallResults();
+    }
+  }, [allResults, user, fetchCallResults]);
 
   const handleSearch = async (params: SearchParams, page: number = 1) => {
     setIsLoading(true);
