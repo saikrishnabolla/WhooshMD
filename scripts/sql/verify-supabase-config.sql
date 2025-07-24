@@ -129,24 +129,50 @@ LIMIT 10;
 -- 10. ENVIRONMENT VALIDATION
 -- ========================================
 -- Check if we can insert a test record (will be rolled back)
-BEGIN;
-  INSERT INTO call_results (
-    call_id, 
-    provider_npi, 
-    status, 
-    user_id
-  ) VALUES (
-    'test_config_check', 
-    '1234567890', 
-    'pending', 
-    '00000000-0000-0000-0000-000000000000'
-  );
-  
-  SELECT 
-    'Test insert successful' as test_result,
-    'Database write permissions work' as description;
+DO $$
+DECLARE
+    test_user_id UUID;
+BEGIN
+    -- Try to find an existing user first
+    SELECT id INTO test_user_id FROM auth.users LIMIT 1;
     
-ROLLBACK;
+    -- If no users exist, try the test user ID, or skip the test
+    IF test_user_id IS NULL THEN
+        -- Check if our test user exists
+        SELECT id INTO test_user_id FROM auth.users 
+        WHERE id = '00000000-0000-0000-0000-000000000000';
+        
+        IF test_user_id IS NULL THEN
+            RAISE NOTICE 'No users found in auth.users - skipping insert test';
+            RAISE NOTICE 'Run fix-call-results-issues.sql first to create a test user';
+            RETURN;
+        END IF;
+    END IF;
+    
+    -- Perform the test insert
+    BEGIN
+        INSERT INTO call_results (
+            call_id, 
+            provider_npi, 
+            status, 
+            user_id
+        ) VALUES (
+            'test_config_check', 
+            '1234567890', 
+            'pending', 
+            test_user_id
+        );
+        
+        RAISE NOTICE 'Test insert successful - Database write permissions work';
+        
+        -- Clean up the test record
+        DELETE FROM call_results WHERE call_id = 'test_config_check';
+        
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Test insert failed: %', SQLERRM;
+    END;
+END $$;
 
 -- 11. WEBHOOK INTEGRATION CHECK
 -- ========================================
