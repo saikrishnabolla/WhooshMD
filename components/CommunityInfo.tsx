@@ -95,17 +95,38 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
     const summary = communityData?.summary;
     if (!summary) {
       return (
-        <div className="text-center py-8">
-          <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Community Data Yet</h3>
-          <p className="text-gray-600 mb-4">Be the first to share information about this provider!</p>
-          <button
-            onClick={onContribute}
-            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            <Plus size={16} className="mr-2" />
-            Add Information
-          </button>
+        <div className="text-center py-12">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
+            <Users className="mx-auto h-16 w-16 text-blue-400 mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">No Community Data Yet</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              This provider hasn't been reviewed by our community yet. You can be the first to share your experience and help others make informed decisions!
+            </p>
+            <div className="space-y-3">
+              {user ? (
+                <button
+                  onClick={onContribute}
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
+                >
+                  <Plus size={18} className="mr-2" />
+                  Share Your Experience
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-500">Sign in to contribute information</p>
+                  <button
+                    onClick={() => window.location.href = '/dashboard'}
+                    className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                  >
+                    Sign In to Contribute
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="mt-6 text-xs text-gray-500">
+              <p>💡 Tip: Contributing helps build a valuable resource for everyone seeking healthcare providers!</p>
+            </div>
+          </div>
         </div>
       );
     }
