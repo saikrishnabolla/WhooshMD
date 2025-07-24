@@ -26,6 +26,7 @@ import {
   CommunityDataResponse
 } from '../types/community';
 import communityService, { formatHelpers } from '../services/community';
+import { supabase } from '../lib/supabase';
 
 interface CommunityInfoProps {
   provider: Provider;
@@ -88,22 +89,21 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
   const loadOmnidimData = React.useCallback(async () => {
     try {
       setOmnidimLoading(true);
-      // Fetch Omnidim call results for this provider
-      const response = await fetch('/api/call-results', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider_npis: [provider.number]
-        }),
-      });
+      // Query Supabase call_results table directly
+      const { data, error } = await supabase
+        .from('call_results')
+        .select('*')
+        .eq('provider_npi', provider.number)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (error) {
+        console.error('Error fetching call results:', error);
+      } else if (data && data.length > 0) {
         // Get the most recent call result for this provider
-        const providerResult = data.results?.find((result: OmnidimCallResult) => result.provider_npi === provider.number);
-        setOmnidimData(providerResult || null);
+        setOmnidimData(data[0] as OmnidimCallResult);
+      } else {
+        setOmnidimData(null);
       }
     } catch (err) {
       console.error('Error loading Omnidim data:', err);
