@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Globe, Heart, Calendar, Stethoscope, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, Heart, Calendar, Stethoscope, ArrowLeft, Star } from 'lucide-react';
 import { Provider } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { navigateToUrl } from '../lib/utils';
@@ -18,6 +18,7 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
   const { user } = useAuth();
   const [favorite, setFavorite] = React.useState(false);
   const [showContributionModal, setShowContributionModal] = useState(false);
+  const [communityData, setCommunityData] = useState<any>(null);
 
   React.useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -104,11 +105,11 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative animate-fade-scale">
-        <div className="sticky top-0 z-10 bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative animate-fade-scale backdrop-blur-sm">
+        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none flex items-center"
+            className="text-gray-500 hover:text-gray-700 focus:outline-none flex items-center transition-colors hover:bg-gray-50 px-2 py-1 rounded-md"
           >
             <ArrowLeft size={20} className="mr-1" />
             <span>Back</span>
@@ -116,15 +117,15 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
           
           <button
             onClick={user ? toggleFavorite : () => navigateToUrl('/dashboard')}
-            className={`p-2 rounded-full flex items-center ${
+            className={`px-3 py-2 rounded-lg flex items-center ${
               favorite 
-                ? 'text-red-500 hover:text-red-600' 
-                : 'text-gray-400 hover:text-red-500'
-            } transition-colors focus:outline-none`}
+                ? 'text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100' 
+                : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+            } transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-200`}
             aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
           >
             <Heart size={20} fill={favorite ? 'currentColor' : 'none'} className="mr-1" />
-            <span>{user ? (favorite ? 'Saved' : 'Save') : 'Sign in to save'}</span>
+            <span className="text-sm font-medium">{user ? (favorite ? 'Saved' : 'Save') : 'Sign in to save'}</span>
           </button>
         </div>
         
@@ -133,18 +134,33 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
             <h2 className="text-2xl font-bold text-gray-800">{getProviderName()}</h2>
             <div className="flex flex-wrap items-center mt-2">
               {getPrimaryTaxonomy() && (
-                <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mr-2 mb-2">
+                <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mr-2 mb-2 shadow-sm">
                   <Stethoscope size={14} className="mr-1" />
                   {getPrimaryTaxonomy().desc}
                 </span>
               )}
-              <span className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mb-2">
-                {isOrganization ? 'Organization' : 'Individual Provider'}
+              <span className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mb-2 shadow-sm">
+                {isOrganization ? '🏢 Organization' : '👤 Individual Provider'}
               </span>
             </div>
-            <div className="text-sm text-gray-600 mt-1 flex items-center">
-              <Calendar size={14} className="mr-1" />
-              Last Updated: {new Date(provider.basic.last_updated).toLocaleDateString()}
+            <div className="flex items-center gap-4 mt-3">
+              <div className="text-sm text-gray-600 flex items-center bg-gray-50 px-2 py-1 rounded-md">
+                <Calendar size={14} className="mr-1 text-gray-500" />
+                Last Updated: {new Date(provider.basic.last_updated).toLocaleDateString()}
+              </div>
+              
+              {/* Community Rating Snippet */}
+              {communityData?.summary?.avg_rating && (
+                <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-md border border-yellow-200">
+                  <Star size={16} className="text-yellow-500 fill-current mr-1" />
+                  <span className="text-sm font-medium text-yellow-800">
+                    {communityData.summary.avg_rating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-yellow-600 ml-1">
+                    ({communityData.summary.total_ratings} reviews)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           
@@ -168,9 +184,9 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
                     href={getGoogleMapsUrl(primaryLocation)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary-600 hover:text-primary-800 transition-colors"
+                    className="inline-flex items-center text-sm text-primary-600 hover:text-primary-800 transition-colors hover:bg-primary-50 px-2 py-1 rounded-md"
                   >
-                    View on Google Maps
+                    📍 View on Google Maps
                   </a>
                 </div>
                 
@@ -179,7 +195,7 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
                     <Phone size={18} className="text-gray-500 mr-2 flex-shrink-0" />
                     <a 
                       href={`tel:${primaryLocation.telephone_number.replace(/[^\d]/g, '')}`}
-                      className="text-primary-600 hover:text-primary-800 transition-colors"
+                      className="text-primary-600 hover:text-primary-800 transition-colors hover:bg-primary-50 px-2 py-1 rounded-md -ml-2"
                     >
                       {primaryLocation.telephone_number}
                     </a>
@@ -220,7 +236,7 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
                     <Mail size={18} className="text-gray-500 mr-2 flex-shrink-0" />
                     <a 
                       href={`mailto:${getEmailAddress()?.endpoint}`}
-                      className="text-primary-600 hover:text-primary-800 transition-colors"
+                      className="text-primary-600 hover:text-primary-800 transition-colors hover:bg-primary-50 px-2 py-1 rounded-md -ml-2"
                     >
                       {getEmailAddress()?.endpoint}
                     </a>
@@ -234,7 +250,7 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
                       href={getWebsite()?.endpoint || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary-600 hover:text-primary-800 transition-colors"
+                      className="text-primary-600 hover:text-primary-800 transition-colors hover:bg-primary-50 px-2 py-1 rounded-md -ml-2"
                     >
                       {getWebsite()?.endpoint}
                     </a>
@@ -247,23 +263,29 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
           {provider.taxonomies.length > 0 && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Specialties & Licenses</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 shadow-sm">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 font-semibold text-gray-700">Specialty</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">License</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">State</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Primary</th>
+                    <tr className="border-b border-gray-300">
+                      <th className="text-left py-3 font-semibold text-gray-800">Specialty</th>
+                      <th className="text-left py-3 font-semibold text-gray-800">License</th>
+                      <th className="text-left py-3 font-semibold text-gray-800">State</th>
+                      <th className="text-left py-3 font-semibold text-gray-800">Primary</th>
                     </tr>
                   </thead>
                   <tbody>
                     {provider.taxonomies.map((taxonomy, index) => (
-                      <tr key={index} className={index < provider.taxonomies.length - 1 ? 'border-b border-gray-200' : ''}>
-                        <td className="py-3">{taxonomy.desc}</td>
-                        <td className="py-3">{taxonomy.license || '-'}</td>
-                        <td className="py-3">{taxonomy.state || '-'}</td>
-                        <td className="py-3">{taxonomy.primary ? 'Yes' : 'No'}</td>
+                      <tr key={index} className={`${index < provider.taxonomies.length - 1 ? 'border-b border-gray-200' : ''} hover:bg-white/50 transition-colors`}>
+                        <td className="py-3 font-medium text-gray-900">{taxonomy.desc}</td>
+                        <td className="py-3 text-gray-700">{taxonomy.license || '-'}</td>
+                        <td className="py-3 text-gray-700">{taxonomy.state || '-'}</td>
+                        <td className="py-3">
+                          {taxonomy.primary ? (
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Primary</span>
+                          ) : (
+                            <span className="text-gray-500 text-xs">-</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -288,11 +310,12 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
             </div>
           )}
           
-          {/* Community Information Section */}
+          {/* Community Information Section - Only show if there's actual data */}
           <div className="mt-8">
             <CommunityInfo 
               provider={provider} 
               onContribute={() => setShowContributionModal(true)}
+              onDataLoad={setCommunityData}
             />
           </div>
 
@@ -309,9 +332,9 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
                   href={`https://npiregistry.cms.hhs.gov/provider-view/${provider.number}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary-600 hover:text-primary-800 transition-colors"
+                  className="inline-flex items-center text-primary-600 hover:text-primary-800 transition-colors hover:bg-primary-50 px-2 py-1 rounded-md text-sm"
                 >
-                  View on NPI Registry
+                  🔗 View on NPI Registry
                 </a>
               </div>
             </div>

@@ -118,7 +118,7 @@ export interface RatingFormData {
 
 export interface ReviewFormData {
   review_text: string;
-  visit_date?: string;
+  visit_date?: string | null;
   appointment_type?: string;
   would_recommend?: boolean;
   is_anonymous?: boolean;
@@ -126,12 +126,12 @@ export interface ReviewFormData {
 
 export interface AvailabilityFormData {
   accepting_new_patients?: boolean;
-  next_available_appointment?: string;
+  next_available_appointment?: string | null;
   appointment_types?: string[];
   office_hours?: OfficeHours;
   wait_time_estimate?: string;
   notes?: string;
-  last_contacted_date?: string;
+  last_contacted_date?: string | null;
   contact_method?: string;
   confidence_level: number;
   verified_by_office?: boolean;
@@ -144,7 +144,7 @@ export interface InsuranceFormData {
   copay_amount?: number;
   deductible_applies?: boolean;
   is_in_network?: boolean;
-  verification_date?: string;
+  verification_date?: string | null;
   notes?: string;
   confidence_level: number;
 }
