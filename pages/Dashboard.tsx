@@ -6,6 +6,22 @@ import { Phone, Calendar, Clock, AlertCircle, RefreshCw, Eye, Bell, Trash2 } fro
 import AvailabilityResults from '../components/AvailabilityResults';
 import CommunityContributions from '../components/CommunityContributions';
 import { getVoiceCalls, LocalVoiceCall, deleteVoiceCall } from '../services/storage';
+import { useCallResultsByIds } from '../hooks/useCallResults';
+
+// Define enhanced voice call type
+interface EnrichedVoiceCall extends LocalVoiceCall {
+  callResult?: {
+    provider_npi: string;
+    phone_number: string;
+    status: "calling" | "completed" | "failed";
+    availability_status?: string;
+    insurance_accepted?: string;
+    appointment_types_available?: string;
+    availability_timeframe?: string;
+    specific_availability?: string;
+    recording_url?: string;
+  };
+}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -16,6 +32,16 @@ const Dashboard: React.FC = () => {
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
   const [deletingCalls, setDeletingCalls] = useState<Set<string>>(new Set());
   const voiceCallsRef = useRef<LocalVoiceCall[]>([]);
+
+  // Get call IDs for real-time updates from Supabase
+  const callIds = voiceCalls.map(call => call.call_id).filter(Boolean) as string[];
+  
+  // Use real-time call results from Supabase
+  const { getCallResult } = useCallResultsByIds({
+    callIds,
+    autoRefresh: true,
+    refreshInterval: 5000, // Check every 5 seconds for updates
+  });
 
   const fetchVoiceCalls = useCallback(async () => {
     if (!user) return;
@@ -126,6 +152,27 @@ const Dashboard: React.FC = () => {
     }
   }, [user, fetchVoiceCalls]);
 
+  // Merge local voice calls with real-time Supabase data
+  const enrichedVoiceCalls: EnrichedVoiceCall[] = voiceCalls.map(call => {
+    const realTimeResult = call.call_id ? getCallResult(call.call_id) : null;
+    
+    // If we have real-time data from Supabase, use it to update the call status
+    if (realTimeResult && realTimeResult.status === 'completed') {
+      return {
+        ...call,
+        status: 'completed' as const,
+        availability_found: realTimeResult.availability_status?.toLowerCase().includes('accepting') || 
+                           realTimeResult.availability_status?.toLowerCase().includes('available') ||
+                           false,
+        next_available: realTimeResult.availability_timeframe || realTimeResult.specific_availability || undefined,
+        // Store the full call result for detailed display
+        callResult: realTimeResult,
+      };
+    }
+    
+    return call;
+  });
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -157,9 +204,9 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const completedCalls = voiceCalls.filter(call => call.status === 'completed');
-  const availabilityFound = voiceCalls.filter(call => call.availability_found);
-  const activeCalls = voiceCalls.filter(call => call.status === 'initiated' || call.status === 'in_progress');
+  const completedCalls = enrichedVoiceCalls.filter(call => call.status === 'completed');
+  const availabilityFound = enrichedVoiceCalls.filter(call => call.availability_found);
+  const activeCalls = enrichedVoiceCalls.filter(call => call.status === 'initiated' || call.status === 'in_progress');
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
@@ -200,7 +247,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Calls</p>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{voiceCalls.length}</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{enrichedVoiceCalls.length}</h3>
             </div>
             <Phone className="w-8 h-8 text-primary-600" />
           </div>
@@ -266,7 +313,34 @@ const Dashboard: React.FC = () => {
           </div>
           
           {showResults && (
-            <AvailabilityResults calls={availabilityFound} />
+            <AvailabilityResults calls={availabilityFound.map(call => {
+              // Create LocalVoiceCall without callResult property
+              const localCall: LocalVoiceCall = {
+                id: call.id,
+                provider_npi: call.provider_npi,
+                provider_name: call.provider_name,
+                provider_phone: call.provider_phone,
+                status: call.status,
+                call_duration: call.call_duration,
+                availability_found: call.availability_found,
+                next_available: call.next_available,
+                next_available_slots: call.next_available_slots,
+                appointment_types: call.appointment_types,
+                accepting_new_patients: call.accepting_new_patients,
+                office_hours: call.office_hours,
+                special_notes: call.special_notes,
+                call_summary: call.call_summary,
+                transcript: call.transcript,
+                created_at: call.created_at,
+                updated_at: call.updated_at,
+                call_id: call.call_id,
+                message: call.message,
+                appointment_type_requested: call.appointment_type_requested,
+                verified_at: call.verified_at,
+                dispatch_timestamp: call.dispatch_timestamp,
+              };
+              return localCall;
+            })} />
           )}
         </div>
       )}
@@ -276,14 +350,14 @@ const Dashboard: React.FC = () => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-900">Voice Calls History</h2>
-            {voiceCalls.length > 0 && (
+            {enrichedVoiceCalls.length > 0 && (
               <button
                 onClick={handleClearAllCalls}
                 disabled={refreshing}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 size={16} />
-                Clear All ({voiceCalls.length})
+                Clear All ({enrichedVoiceCalls.length})
               </button>
             )}
           </div>
@@ -295,7 +369,7 @@ const Dashboard: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
               <p className="text-gray-600 mt-2">Loading calls...</p>
             </div>
-          ) : voiceCalls.length === 0 ? (
+          ) : enrichedVoiceCalls.length === 0 ? (
             <div className="text-center py-12">
               <Phone className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No voice calls yet</h3>
@@ -312,69 +386,114 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {voiceCalls.map((call) => (
-                <div key={call.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium text-gray-900">
-                          {call.provider_name}
-                        </h3>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(call.status)}`}>
-                          {getStatusText(call.status)}
-                        </span>
+              {enrichedVoiceCalls.map((call) => {
+                const realTimeResult = call.callResult;
+                
+                return (
+                  <div key={call.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-medium text-gray-900">
+                            {call.provider_name}
+                          </h3>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(call.status)}`}>
+                            {getStatusText(call.status)}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>NPI: {call.provider_npi}</p>
+                          <p>Phone: {call.provider_phone}</p>
+                          {call.message && (
+                            <p className="text-blue-600">Message: {call.message}</p>
+                          )}
+                          {call.call_id && (
+                            <p>Call ID: {call.call_id}</p>
+                          )}
+                          <p>Started: {new Date(call.created_at).toLocaleString()}</p>
+                          
+                          {/* Show real-time data from Supabase */}
+                          {realTimeResult && (
+                            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                              <p className="text-sm font-medium text-blue-900 mb-2">AI Verification Results:</p>
+                              {realTimeResult.availability_status && (
+                                <p className="text-sm text-blue-800">
+                                  <strong>Status:</strong> {realTimeResult.availability_status}
+                                </p>
+                              )}
+                              {realTimeResult.insurance_accepted && (
+                                <p className="text-sm text-blue-800">
+                                  <strong>Insurance:</strong> {realTimeResult.insurance_accepted}
+                                </p>
+                              )}
+                              {realTimeResult.appointment_types_available && (
+                                <p className="text-sm text-blue-800">
+                                  <strong>Appointments:</strong> {realTimeResult.appointment_types_available}
+                                </p>
+                              )}
+                              {realTimeResult.availability_timeframe && (
+                                <p className="text-sm text-blue-800">
+                                  <strong>Next Available:</strong> {realTimeResult.availability_timeframe}
+                                </p>
+                              )}
+                              {realTimeResult.specific_availability && (
+                                <p className="text-sm text-blue-800">
+                                  <strong>Hours:</strong> {realTimeResult.specific_availability}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>NPI: {call.provider_npi}</p>
-                        <p>Phone: {call.provider_phone}</p>
-                        {call.message && (
-                          <p className="text-blue-600">Message: {call.message}</p>
+                      
+                      <div className="flex items-center gap-2">
+                        {call.availability_found && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Available
+                          </span>
                         )}
-                        {call.call_id && (
-                          <p>Call ID: {call.call_id}</p>
+                        {call.status === 'completed' && !call.availability_found && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            No Availability
+                          </span>
                         )}
-                        <p>Started: {new Date(call.created_at).toLocaleString()}</p>
+                        {realTimeResult?.recording_url && (
+                          <button
+                            onClick={() => window.open(realTimeResult.recording_url, '_blank')}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                            title="Listen to call recording"
+                          >
+                            <Phone size={16} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteCall(call.id)}
+                          disabled={deletingCalls.has(call.id)}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete voice call"
+                        >
+                          {deletingCalls.has(call.id) ? (
+                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                        </button>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      {call.availability_found && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Available
-                        </span>
-                      )}
-                      {call.status === 'completed' && !call.availability_found && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          No Availability
-                        </span>
-                      )}
-                      <button
-                        onClick={() => handleDeleteCall(call.id)}
-                        disabled={deletingCalls.has(call.id)}
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Delete voice call"
-                      >
-                        {deletingCalls.has(call.id) ? (
-                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {call.next_available && (
-                    <div className="mt-3 p-3 bg-green-50 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-800">
-                          Next Available: {call.next_available}
-                        </span>
+                    {call.next_available && (
+                      <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">
+                            Next Available: {call.next_available}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

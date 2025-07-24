@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Process the call result
+    // Process the call result with all extracted variables
     const processedCallResult = {
       call_id,
       provider_npi,
@@ -116,6 +116,20 @@ export async function POST(request: NextRequest) {
       user_id: matchedCallData?.user_id || null,
       matched_timestamp: matchedTimestamp,
       time_difference_seconds: closestTimeDiff !== Number.POSITIVE_INFINITY ? Math.round(closestTimeDiff / 1000) : null,
+      // Store all extracted variables as JSON
+      extracted_variables: extracted_variables ? JSON.stringify(extracted_variables) : null,
+      // Store specific useful fields for easier querying
+      clinic_name: extracted_variables?.clinic_name,
+      contact_person: extracted_variables?.contact_person,
+      insurance_accepted: extracted_variables?.insurance_accepted,
+      appointment_types_available: extracted_variables?.appointment_types_available,
+      availability_timeframe: extracted_variables?.availability_timeframe,
+      specific_availability: extracted_variables?.specific_availability,
+      call_outcome_quality: extracted_variables?.call_outcome_quality,
+      clinic_phone_verified: extracted_variables?.clinic_phone_verified,
+      follow_up_needed: extracted_variables?.follow_up_needed,
+      callback_instructions: extracted_variables?.callback_instructions,
+      additional_requirements: extracted_variables?.additional_requirements,
       debug_info: {
         webhook_received_at: new Date().toISOString(),
         webhook_call_time: new Date(webhookTime).toISOString(),
@@ -145,6 +159,7 @@ export async function POST(request: NextRequest) {
       has_details: !!processedCallResult.availability_details,
       matched_by_timestamp: !!matchedTimestamp,
       time_diff_seconds: processedCallResult.time_difference_seconds,
+      extracted_vars_keys: extracted_variables ? Object.keys(extracted_variables) : [],
     })
 
     return NextResponse.json({
