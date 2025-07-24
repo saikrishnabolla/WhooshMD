@@ -335,6 +335,108 @@ export const communityService = {
     const { data, error } = await query;
     if (error) throw error;
     return data || [];
+  },
+
+  // User-specific contribution methods
+  async getUserContributions(userId: string): Promise<{
+    ratings: ProviderRating[];
+    reviews: ProviderReview[];
+    availability_updates: ProviderAvailabilityUpdate[];
+    insurance_updates: ProviderInsurance[];
+    total_contributions: number;
+  }> {
+    try {
+      const [ratings, reviews, availability, insurance] = await Promise.allSettled([
+        supabase
+          .from('provider_ratings')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('provider_reviews')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('provider_availability_updates')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('provider_insurance')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+      ]);
+
+      const ratingsData = ratings.status === 'fulfilled' ? (ratings.value.data || []) : [];
+      const reviewsData = reviews.status === 'fulfilled' ? (reviews.value.data || []) : [];
+      const availabilityData = availability.status === 'fulfilled' ? (availability.value.data || []) : [];
+      const insuranceData = insurance.status === 'fulfilled' ? (insurance.value.data || []) : [];
+
+      return {
+        ratings: ratingsData,
+        reviews: reviewsData,
+        availability_updates: availabilityData,
+        insurance_updates: insuranceData,
+        total_contributions: ratingsData.length + reviewsData.length + availabilityData.length + insuranceData.length
+      };
+    } catch (error) {
+      console.error('Error fetching user contributions:', error);
+      return {
+        ratings: [],
+        reviews: [],
+        availability_updates: [],
+        insurance_updates: [],
+        total_contributions: 0
+      };
+    }
+  },
+
+  async getUserContributionStats(userId: string): Promise<{
+    total_contributions: number;
+    total_ratings: number;
+    total_reviews: number;
+    total_availability_updates: number;
+    total_insurance_updates: number;
+    avg_rating_given: number;
+    most_recent_contribution: string | null;
+  }> {
+    try {
+      const contributions = await this.getUserContributions(userId);
+      
+      const avgRating = contributions.ratings.length > 0
+        ? contributions.ratings.reduce((sum, rating) => sum + rating.rating, 0) / contributions.ratings.length
+        : 0;
+
+      const allContributions = [
+        ...contributions.ratings.map(r => ({ created_at: r.created_at })),
+        ...contributions.reviews.map(r => ({ created_at: r.created_at })),
+        ...contributions.availability_updates.map(r => ({ created_at: r.created_at })),
+        ...contributions.insurance_updates.map(r => ({ created_at: r.created_at }))
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      return {
+        total_contributions: contributions.total_contributions,
+        total_ratings: contributions.ratings.length,
+        total_reviews: contributions.reviews.length,
+        total_availability_updates: contributions.availability_updates.length,
+        total_insurance_updates: contributions.insurance_updates.length,
+        avg_rating_given: avgRating,
+        most_recent_contribution: allContributions.length > 0 ? allContributions[0].created_at : null
+      };
+    } catch (error) {
+      console.error('Error fetching user contribution stats:', error);
+      return {
+        total_contributions: 0,
+        total_ratings: 0,
+        total_reviews: 0,
+        total_availability_updates: 0,
+        total_insurance_updates: 0,
+        avg_rating_given: 0,
+        most_recent_contribution: null
+      };
+    }
   }
 };
 

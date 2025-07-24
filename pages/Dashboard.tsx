@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Phone, Calendar, Clock, AlertCircle, RefreshCw, Eye, Bell } from 'lucide-react';
 import AvailabilityResults from '../components/AvailabilityResults';
+import CommunityContributions from '../components/CommunityContributions';
 import { getVoiceCalls, LocalVoiceCall } from '../services/storage';
 
 const Dashboard: React.FC = () => {
@@ -302,6 +303,9 @@ const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Community Contributions Section */}
+      <CommunityContributions className="mt-8" />
     </div>
   );
 };
