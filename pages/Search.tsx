@@ -217,7 +217,18 @@ const Search: React.FC = () => {
       const aResult = callResults.get(a.number);
       const bResult = callResults.get(b.number);
       
-      // AI-verified providers first
+      // Priority order: 1) Completed with accepting status, 2) Completed with other status, 3) Calling, 4) No call results
+      
+      // AI-verified providers with accepting status first
+      const aAccepting = aResult?.status === 'completed' && aResult?.availability_status && 
+        (aResult.availability_status.toLowerCase().includes('accepting') || aResult.availability_status.toLowerCase().includes('available'));
+      const bAccepting = bResult?.status === 'completed' && bResult?.availability_status && 
+        (bResult.availability_status.toLowerCase().includes('accepting') || bResult.availability_status.toLowerCase().includes('available'));
+      
+      if (aAccepting && !bAccepting) return -1;
+      if (bAccepting && !aAccepting) return 1;
+      
+      // Then all AI-verified providers (completed status)
       if (aResult?.status === 'completed' && bResult?.status !== 'completed') return -1;
       if (bResult?.status === 'completed' && aResult?.status !== 'completed') return 1;
       
