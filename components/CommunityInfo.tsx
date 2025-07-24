@@ -7,7 +7,6 @@ import {
   Clock, 
   Calendar, 
   Shield, 
-  Users, 
   ThumbsUp, 
   ThumbsDown, 
   MessageSquare,
@@ -55,7 +54,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
     } finally {
       setLoading(false);
     }
-  }, [provider.number, user]);
+  }, [provider.number, user, onDataLoad]);
 
   useEffect(() => {
     loadCommunityData();

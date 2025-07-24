@@ -18,7 +18,9 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
   const { user } = useAuth();
   const [favorite, setFavorite] = React.useState(false);
   const [showContributionModal, setShowContributionModal] = useState(false);
-  const [communityData, setCommunityData] = useState<any>(null);
+  const [communityData, setCommunityData] = useState<{
+    summary?: { avg_rating?: number; total_ratings?: number } | null;
+  } | null>(null);
 
   React.useEffect(() => {
     const checkFavoriteStatus = async () => {

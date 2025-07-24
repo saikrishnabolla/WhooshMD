@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Phone, Calendar, Clock, AlertCircle, RefreshCw, Eye, Bell } from 'lucide-react';
 import AvailabilityResults from '../components/AvailabilityResults';
@@ -13,18 +13,20 @@ const Dashboard: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
+  const voiceCallsRef = useRef<LocalVoiceCall[]>([]);
 
-  const fetchVoiceCalls = async () => {
+  const fetchVoiceCalls = useCallback(async () => {
     if (!user) return;
     
     try {
       const calls = getVoiceCalls(user.id);
       setVoiceCalls(calls);
+      voiceCallsRef.current = calls;
       setLastUpdateTime(new Date());
     } catch (error) {
       console.error('Error fetching voice calls:', error);
     }
-  };
+  }, [user]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -47,7 +49,7 @@ const Dashboard: React.FC = () => {
       
       // Auto-refresh every 30 seconds for active calls
       const interval = setInterval(() => {
-        const hasActiveCalls = voiceCalls.some(call => 
+        const hasActiveCalls = voiceCallsRef.current.some(call => 
           call.status === 'initiated' || call.status === 'in_progress'
         );
         
@@ -67,7 +69,7 @@ const Dashboard: React.FC = () => {
         clearInterval(interval);
       };
     }
-  }, [user]);
+  }, [user, fetchVoiceCalls]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

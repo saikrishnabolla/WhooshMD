@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import Image from 'next/image';
 import { 
   Phone, Clock, AlertCircle, Mail, 
   FileText, Building2, HeartPulse, Timer
@@ -56,9 +57,11 @@ const About: React.FC = () => {
               </div>
             </div>
             <div className="relative">
-              <img 
+              <Image 
                 src="https://images.pexels.com/photos/7089629/pexels-photo-7089629.jpeg" 
                 alt="Healthcare professional using technology" 
+                width={600}
+                height={400}
                 className="rounded-2xl shadow-xl"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl" />
