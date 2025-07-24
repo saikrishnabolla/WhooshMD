@@ -740,16 +740,12 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
     );
   }
 
-  // Only render the community section if there's actual community data OR Omnidim call data
+  // Check if there's any community data to show
   const hasAnyData = communityData?.summary || 
                      (communityData?.reviews && communityData.reviews.length > 0) ||
                      communityData?.latest_availability ||
                      (communityData?.insurance_plans && communityData.insurance_plans.length > 0) ||
                      omnidimData; // Include Omnidim data in the check
-
-  if (!hasAnyData) {
-    return null; // Hide the entire community section when no data exists
-  }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 animate-fade-scale">
@@ -770,40 +766,77 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex overflow-x-auto space-x-2 sm:space-x-8 px-4 sm:px-6">
-          {[
-            { key: 'overview', label: 'Overview', icon: TrendingUp },
-            { key: 'reviews', label: 'Reviews', icon: MessageSquare },
-            { key: 'availability', label: 'Availability', icon: Calendar },
-            { key: 'insurance', label: 'Insurance', icon: Shield },
-            { key: 'callinfo', label: 'Call Info', icon: Phone }
-          ].map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key as 'overview' | 'reviews' | 'availability' | 'insurance' | 'callinfo')}
-              className={`py-4 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
-                activeTab === key
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Icon size={16} className="mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">{label}</span>
-              <span className="sm:hidden">{key === 'overview' ? 'Overview' : key === 'reviews' ? 'Reviews' : key === 'availability' ? 'Avail.' : key === 'insurance' ? 'Insur.' : 'Call Info'}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
+      {/* Tabs - Only show when there's data */}
+      {hasAnyData && (
+        <div className="border-b border-gray-200">
+          <nav className="flex overflow-x-auto space-x-2 sm:space-x-8 px-4 sm:px-6">
+            {[
+              { key: 'overview', label: 'Overview', icon: TrendingUp },
+              { key: 'reviews', label: 'Reviews', icon: MessageSquare },
+              { key: 'availability', label: 'Availability', icon: Calendar },
+              { key: 'insurance', label: 'Insurance', icon: Shield },
+              { key: 'callinfo', label: 'Call Info', icon: Phone }
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key as 'overview' | 'reviews' | 'availability' | 'insurance' | 'callinfo')}
+                className={`py-4 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
+                  activeTab === key
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Icon size={16} className="mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{label}</span>
+                <span className="sm:hidden">{key === 'overview' ? 'Overview' : key === 'reviews' ? 'Reviews' : key === 'availability' ? 'Avail.' : key === 'insurance' ? 'Insur.' : 'Call Info'}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      )}
 
       {/* Content */}
       <div className="p-4 sm:p-6">
-        {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'reviews' && renderReviews()}
-        {activeTab === 'availability' && renderAvailability()}
-        {activeTab === 'insurance' && renderInsurance()}
-        {activeTab === 'callinfo' && renderCallInfo()}
+        {!hasAnyData ? (
+          // Empty state when no community data exists
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <TrendingUp className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Community Data Yet</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Be the first to share information about this provider! Your contributions help others make informed decisions.
+            </p>
+            {user ? (
+              <button
+                onClick={onContribute}
+                className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+              >
+                <Plus size={16} className="mr-2" />
+                Share Your Experience
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-500">Sign in to contribute information</p>
+                <a
+                  href="/login"
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                >
+                  Sign In to Contribute
+                </a>
+              </div>
+            )}
+          </div>
+        ) : (
+          // Show normal tabs and content when data exists
+          <>
+            {activeTab === 'overview' && renderOverview()}
+            {activeTab === 'reviews' && renderReviews()}
+            {activeTab === 'availability' && renderAvailability()}
+            {activeTab === 'insurance' && renderInsurance()}
+            {activeTab === 'callinfo' && renderCallInfo()}
+          </>
+        )}
       </div>
     </div>
   );
