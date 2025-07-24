@@ -11,6 +11,19 @@ interface CallResult {
   sentiment?: string
   call_date?: string
   recording_url?: string
+  // New extracted variables fields
+  extracted_variables?: string
+  clinic_name?: string
+  contact_person?: string
+  insurance_accepted?: string
+  appointment_types_available?: string
+  availability_timeframe?: string
+  specific_availability?: string
+  call_outcome_quality?: string
+  clinic_phone_verified?: string
+  follow_up_needed?: string
+  callback_instructions?: string
+  additional_requirements?: string
 }
 
 interface UseCallResultsOptions {
@@ -42,11 +55,11 @@ interface UseCallResultsByIdReturn {
   getCallResult: (callId: string) => CallResult | undefined
 }
 
-// New hook for call_id-based polling
+// New hook for call_id-based polling (for real-time dashboard updates)
 export function useCallResultsByIds({
   callIds = [],
   autoRefresh = true,
-  refreshInterval = 5000, // 5 seconds as specified
+  refreshInterval = 5000, // 5 seconds for real-time updates
 }: UseCallResultsByIdOptions = {}): UseCallResultsByIdReturn {
   const [callResults, setCallResults] = useState<Map<string, CallResult>>(new Map())
   const [loading, setLoading] = useState(false)
@@ -126,12 +139,12 @@ export function useCallResultsByIds({
   }
 }
 
-// Original hook for provider_npi-based polling (unchanged)
+// Hook for provider_npi-based polling (for provider search)
 export function useCallResults({
   providerNpis = [],
   userId,
   autoRefresh = false,
-  refreshInterval = 30000, // 30 seconds
+  refreshInterval = 30000, // 30 seconds for provider search
 }: UseCallResultsOptions = {}): UseCallResultsReturn {
   const [callResults, setCallResults] = useState<Map<string, CallResult>>(new Map())
   const [loading, setLoading] = useState(false)

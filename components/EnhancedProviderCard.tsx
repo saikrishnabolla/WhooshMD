@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { Phone, MapPin, Clock, CheckCircle, AlertCircle, Loader2, User, Building2, Calendar } from "lucide-react"
+import { Phone, MapPin, Clock, CheckCircle, AlertCircle, Loader2, User, Building2, Calendar, CreditCard, UserCheck, FileText } from "lucide-react"
 // Simple inline components since we don't have a full UI library
 const Badge = ({ children, variant = "default", className = "" }: { 
   children: React.ReactNode, 
@@ -106,6 +106,19 @@ interface CallResult {
   sentiment?: string
   call_date?: string
   recording_url?: string
+  // New extracted variables fields
+  extracted_variables?: string
+  clinic_name?: string
+  contact_person?: string
+  insurance_accepted?: string
+  appointment_types_available?: string
+  availability_timeframe?: string
+  specific_availability?: string
+  call_outcome_quality?: string
+  clinic_phone_verified?: string
+  follow_up_needed?: string
+  callback_instructions?: string
+  additional_requirements?: string
 }
 
 interface AvailabilityInfo {
@@ -129,6 +142,7 @@ export function EnhancedProviderCard({
   onViewDetails 
 }: EnhancedProviderCardProps) {
   const [showFullSummary, setShowFullSummary] = useState(false)
+  const [showExtractedDetails, setShowExtractedDetails] = useState(false)
 
   // Get provider name
   const providerName =
@@ -205,8 +219,8 @@ export function EnhancedProviderCard({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
       <div className="p-6">
-        {/* Header with provider info */}
-        <div className="flex items-start gap-4 mb-4">
+        {/* Header with provider info - Fixed spacing to prevent overlap */}
+        <div className="flex items-start gap-4 mb-6">
           <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
             {provider.enumeration_type === "NPI-1" ? (
               <User className="w-6 h-6 text-blue-600" />
@@ -216,32 +230,70 @@ export function EnhancedProviderCard({
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-1">
+            <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-2">
               {providerName}
             </h3>
             {provider.basic.credential && (
-              <p className="text-sm text-gray-600 font-medium">{provider.basic.credential}</p>
+              <p className="text-sm text-gray-600 font-medium mb-3">{provider.basic.credential}</p>
             )}
             
-            <div className="flex flex-wrap items-center gap-2 mt-2">
-              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                {primarySpecialty}
-              </Badge>
-              <Badge variant="outline" className="text-gray-600 border-gray-300 text-xs">
-                {provider.enumeration_type === "NPI-1" ? "Individual" : "Organization"}
-              </Badge>
+            {/* Fixed badges layout to prevent overlap */}
+            <div className="flex flex-col gap-2 mb-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                  {primarySpecialty}
+                </Badge>
+                <Badge variant="outline" className="text-gray-600 border-gray-300 text-xs">
+                  {provider.enumeration_type === "NPI-1" ? "Individual" : "Organization"}
+                </Badge>
+              </div>
+              
+              {/* Availability status badge - separated to prevent overlap */}
+              {callResult?.availability_status && (
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    callResult.availability_status.toLowerCase().includes('accepting') || 
+                    callResult.availability_status.toLowerCase().includes('available')
+                      ? 'bg-green-500' 
+                      : callResult.availability_status.toLowerCase().includes('no') || 
+                        callResult.availability_status.toLowerCase().includes('not')
+                        ? 'bg-red-500' 
+                        : 'bg-yellow-500'
+                  }`} />
+                  <Badge 
+                    variant={
+                      callResult.availability_status.toLowerCase().includes('accepting') || 
+                      callResult.availability_status.toLowerCase().includes('available')
+                        ? "default"
+                        : "secondary"
+                    } 
+                    className={`text-xs ${
+                      callResult.availability_status.toLowerCase().includes('accepting') || 
+                      callResult.availability_status.toLowerCase().includes('available')
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : callResult.availability_status.toLowerCase().includes('no') || 
+                          callResult.availability_status.toLowerCase().includes('not')
+                          ? "bg-red-100 text-red-800 border-red-200"
+                          : "bg-yellow-100 text-yellow-800 border-yellow-200"
+                    }`}
+                  >
+                    <UserCheck className="w-3 h-3 mr-1" />
+                    {callResult.availability_status}
+                  </Badge>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Contact info */}
-        <div className="space-y-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-start gap-2">
+        <div className="space-y-3 text-sm text-gray-600 mb-4">
+          <div className="flex items-start gap-3">
             <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
             <span className="leading-relaxed">{fullAddress}</span>
           </div>
           {phoneNumber && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <span className="font-medium">{formatPhoneNumber(phoneNumber)}</span>
             </div>
@@ -258,7 +310,7 @@ export function EnhancedProviderCard({
         {callResult && (
           <>
             <Separator className="my-4" />
-            <div className="space-y-3">
+            <div className="space-y-4">
               {/* Call Status Header */}
               <div className="flex items-center gap-2">
                 {callResult.status === "calling" && (
@@ -286,64 +338,139 @@ export function EnhancedProviderCard({
                 )}
               </div>
 
-              {/* Availability Display */}
+              {/* Enhanced Availability Display */}
               {callResult.status === "completed" && (
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                  {/* Availability Status */}
-                  {callResult.availability_status && (
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        availabilityInfo?.acceptingNewPatients 
-                          ? 'bg-green-500' 
-                          : callResult.availability_status.toLowerCase().includes('no') || 
-                            callResult.availability_status.toLowerCase().includes('not')
-                            ? 'bg-red-500' 
-                            : 'bg-yellow-500'
-                      }`} />
-                      <span className="text-sm font-medium text-gray-900">
-                        {callResult.availability_status}
-                      </span>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                  
+                  {/* Key Information Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Clinic Information */}
+                    {callResult.clinic_name && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Building2 className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium text-gray-900">Clinic:</span>
+                        <span className="text-gray-700">{callResult.clinic_name}</span>
+                      </div>
+                    )}
+
+                    {/* Insurance Information */}
+                    {callResult.insurance_accepted && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <CreditCard className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium text-gray-900">Insurance:</span>
+                        <span className="text-gray-700">{callResult.insurance_accepted}</span>
+                      </div>
+                    )}
+
+                    {/* Contact Person */}
+                    {callResult.contact_person && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium text-gray-900">Contact:</span>
+                        <span className="text-gray-700">{callResult.contact_person}</span>
+                      </div>
+                    )}
+
+                    {/* Phone Verification */}
+                    {callResult.clinic_phone_verified && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium text-gray-900">Phone:</span>
+                        <span className="text-gray-700">{callResult.clinic_phone_verified}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Availability Information */}
+                  {(callResult.availability_timeframe || callResult.specific_availability) && (
+                    <div className="border-t border-gray-200 pt-3">
+                      <div className="flex items-start gap-2 text-sm">
+                        <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
+                        <div>
+                          <span className="font-medium text-gray-900">Availability:</span>
+                          <div className="mt-1 space-y-1">
+                            {callResult.availability_timeframe && (
+                              <p className="text-gray-700">Timeframe: {callResult.availability_timeframe}</p>
+                            )}
+                            {callResult.specific_availability && (
+                              <p className="text-gray-700">Hours: {callResult.specific_availability}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
-                  {/* Next Available */}
-                  {availabilityInfo?.nextAvailable && (
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span>Next available: {availabilityInfo.nextAvailable}</span>
+                  {/* Appointment Types */}
+                  {callResult.appointment_types_available && (
+                    <div className="flex items-start gap-2 text-sm text-gray-700">
+                      <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <div>
+                        <span className="font-medium text-gray-900">Appointments:</span>
+                        <span className="ml-1">{callResult.appointment_types_available}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Call Quality Indicator */}
+                  {callResult.call_outcome_quality && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className={`px-2 py-1 rounded-full ${
+                        callResult.call_outcome_quality.toLowerCase().includes('good') ||
+                        callResult.call_outcome_quality.toLowerCase().includes('complete')
+                          ? 'bg-green-100 text-green-800'
+                          : callResult.call_outcome_quality.toLowerCase().includes('limited')
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        Call Quality: {callResult.call_outcome_quality}
+                      </span>
                     </div>
                   )}
 
                   {/* Summary */}
                   {callResult.summary && (
-                    <div className="text-sm text-gray-700">
-                      <p className="font-medium mb-1">Summary:</p>
-                      <p className="leading-relaxed">
-                        {showFullSummary ? callResult.summary : truncatedSummary}
-                        {callResult.summary.length > 150 && (
-                          <button
-                            onClick={() => setShowFullSummary(!showFullSummary)}
-                            className="text-blue-600 hover:text-blue-700 ml-1 font-medium text-xs"
-                          >
-                            {showFullSummary ? "Show less" : "Show more"}
-                          </button>
-                        )}
-                      </p>
+                    <div className="border-t border-gray-200 pt-3">
+                      <div className="text-sm">
+                        <p className="font-medium text-gray-900 mb-2">Call Summary:</p>
+                        <p className="text-gray-700 leading-relaxed">
+                          {showFullSummary ? callResult.summary : truncatedSummary}
+                          {callResult.summary.length > 150 && (
+                            <button
+                              onClick={() => setShowFullSummary(!showFullSummary)}
+                              className="text-blue-600 hover:text-blue-700 ml-1 font-medium text-xs"
+                            >
+                              {showFullSummary ? "Show less" : "Show more"}
+                            </button>
+                          )}
+                        </p>
+                      </div>
                     </div>
                   )}
 
-                  {/* Special Notes */}
-                  {availabilityInfo?.specialNotes && availabilityInfo.specialNotes.length > 0 && (
-                    <div className="text-sm">
-                      <p className="font-medium text-gray-900 mb-1">Notes:</p>
-                      <ul className="text-gray-700 space-y-1">
-                        {availabilityInfo.specialNotes.map((note, index) => (
-                          <li key={index} className="flex items-start gap-1">
-                            <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
-                            <span className="leading-relaxed">{note}</span>
-                          </li>
-                        ))}
-                      </ul>
+                  {/* Additional Details Toggle */}
+                  {(callResult.additional_requirements || callResult.follow_up_needed || callResult.callback_instructions) && (
+                    <div className="border-t border-gray-200 pt-3">
+                      <button
+                        onClick={() => setShowExtractedDetails(!showExtractedDetails)}
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        {showExtractedDetails ? "Hide" : "Show"} Additional Details
+                      </button>
+                      
+                      {showExtractedDetails && (
+                        <div className="mt-3 space-y-2 text-sm text-gray-700">
+                          {callResult.additional_requirements && (
+                            <p><strong>Requirements:</strong> {callResult.additional_requirements}</p>
+                          )}
+                          {callResult.follow_up_needed && (
+                            <p><strong>Follow-up:</strong> {callResult.follow_up_needed}</p>
+                          )}
+                          {callResult.callback_instructions && (
+                            <p><strong>Callback:</strong> {callResult.callback_instructions}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

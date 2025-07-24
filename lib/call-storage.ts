@@ -17,6 +17,19 @@ export interface CallResult {
   call_date?: string
   recording_url?: string
   user_id?: string | null
+  // New extracted variables fields
+  extracted_variables?: string | null
+  clinic_name?: string
+  contact_person?: string
+  insurance_accepted?: string
+  appointment_types_available?: string
+  availability_timeframe?: string
+  specific_availability?: string
+  call_outcome_quality?: string
+  clinic_phone_verified?: string
+  follow_up_needed?: string
+  callback_instructions?: string
+  additional_requirements?: string
   [key: string]: unknown
 }
 
@@ -55,6 +68,19 @@ export async function storeCallResult(result: CallResult) {
       call_date: result.call_date,
       recording_url: result.recording_url,
       user_id: result.user_id || null,
+      // Store all extracted variables
+      extracted_variables: result.extracted_variables,
+      clinic_name: result.clinic_name,
+      contact_person: result.contact_person,
+      insurance_accepted: result.insurance_accepted,
+      appointment_types_available: result.appointment_types_available,
+      availability_timeframe: result.availability_timeframe,
+      specific_availability: result.specific_availability,
+      call_outcome_quality: result.call_outcome_quality,
+      clinic_phone_verified: result.clinic_phone_verified,
+      follow_up_needed: result.follow_up_needed,
+      callback_instructions: result.callback_instructions,
+      additional_requirements: result.additional_requirements,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "call_id", ignoreDuplicates: false },
