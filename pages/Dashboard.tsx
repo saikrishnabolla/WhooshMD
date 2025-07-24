@@ -184,14 +184,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Note about current mode */}
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+      <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
         <div className="flex">
           <div className="flex-shrink-0">
-            <AlertCircle className="h-5 w-5 text-blue-400" />
+            <AlertCircle className="h-5 w-5 text-green-400" />
           </div>
           <div className="ml-3">
-            <p className="text-sm text-blue-700">
-              <strong>Local Mode:</strong> Voice calls are stored locally in your browser. Data will persist until you clear your browser storage.
+            <p className="text-sm text-green-700">
+              <strong>Cloud Mode:</strong> AI call verification results are stored securely in the database and synced across all your devices. Call data persists permanently and is available from any browser.
             </p>
           </div>
         </div>
