@@ -3,7 +3,7 @@
 import React from 'react';
 import { Phone, MapPin, Heart, ExternalLink, Calendar, Stethoscope, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { Provider } from '../types';
-import { isFavorite, addFavorite, removeFavorite } from '../services/storage';
+import { isFavorite, addFavorite, removeFavorite } from '../services/favorites';
 import { useAuth } from '../context/AuthContext';
 import { navigateToUrl } from '../lib/utils';
 
@@ -40,26 +40,43 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   const [favorite, setFavorite] = React.useState(false);
 
   React.useEffect(() => {
-    setFavorite(user ? isFavorite(user.id, provider.number) : false);
+    const checkFavoriteStatus = async () => {
+      if (user) {
+        const favoriteStatus = await isFavorite(user.id, provider.number);
+        setFavorite(favoriteStatus);
+      } else {
+        setFavorite(false);
+      }
+    };
+    
+    checkFavoriteStatus();
   }, [provider.number, user]);
 
-  const toggleFavorite = (e: React.MouseEvent) => {
+  const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
       navigateToUrl('/dashboard');
       return;
     }
     
-    if (favorite) {
-      removeFavorite(user.id, provider.number);
-      setFavorite(false);
-    } else {
-      addFavorite({
-        id: provider.number,
-        provider,
-        timestamp: Date.now(),
-      }, user.id);
-      setFavorite(true);
+    try {
+      if (favorite) {
+        const success = await removeFavorite(user.id, provider.number);
+        if (success) {
+          setFavorite(false);
+        }
+      } else {
+        const success = await addFavorite({
+          id: provider.number,
+          provider,
+          timestamp: Date.now(),
+        }, user.id);
+        if (success) {
+          setFavorite(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
     }
   };
 

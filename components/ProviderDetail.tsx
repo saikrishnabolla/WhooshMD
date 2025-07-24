@@ -5,7 +5,7 @@ import { MapPin, Phone, Mail, Globe, Heart, Calendar, Stethoscope, ArrowLeft } f
 import { Provider } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { navigateToUrl } from '../lib/utils';
-import { isFavorite, addFavorite, removeFavorite } from '../services/storage';
+import { isFavorite, addFavorite, removeFavorite } from '../services/favorites';
 
 interface ProviderDetailProps {
   provider: Provider;
@@ -17,21 +17,39 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
   const [favorite, setFavorite] = React.useState(false);
 
   React.useEffect(() => {
-    if (user) {
-      setFavorite(isFavorite(user.id, provider.number));
-    }
+    const checkFavoriteStatus = async () => {
+      if (user) {
+        const favoriteStatus = await isFavorite(user.id, provider.number);
+        setFavorite(favoriteStatus);
+      } else {
+        setFavorite(false);
+      }
+    };
+    
+    checkFavoriteStatus();
   }, [provider.number, user]);
-  const toggleFavorite = () => {
-    if (favorite) {
-      removeFavorite(user?.id || '', provider.number);
-      setFavorite(false);
-    } else {
-      addFavorite({
-        id: provider.number,
-        provider,
-        timestamp: Date.now(),
-      }, user?.id || '');
-      setFavorite(true);
+
+  const toggleFavorite = async () => {
+    if (!user) return;
+    
+    try {
+      if (favorite) {
+        const success = await removeFavorite(user.id, provider.number);
+        if (success) {
+          setFavorite(false);
+        }
+      } else {
+        const success = await addFavorite({
+          id: provider.number,
+          provider,
+          timestamp: Date.now(),
+        }, user.id);
+        if (success) {
+          setFavorite(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
     }
   };
 

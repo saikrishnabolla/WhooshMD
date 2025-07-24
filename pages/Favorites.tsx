@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Heart, Trash2 } from 'lucide-react';
+import { Heart, Trash2, Loader2 } from 'lucide-react';
 import ProviderCard from '../components/ProviderCard';
 import ProviderDetail from '../components/ProviderDetail';
 import { Provider, FavoriteProvider } from '../types';
-import { getFavorites, removeFavorite } from '../services/storage';
+import { getFavorites, removeFavorite, syncLocalStorageToSupabase } from '../services/favorites';
 import { Link } from '../components/ui/Link';
 import { useAuth } from '../context/AuthContext';
 import AuthUI from '../components/AuthUI';
@@ -14,12 +14,35 @@ const Favorites: React.FC = () => {
   const { user } = useAuth();
   const [favorites, setFavorites] = useState<FavoriteProvider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
-      setFavorites(getFavorites(user.id));
+      loadFavorites();
     }
   }, [user]);
+
+  const loadFavorites = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Sync any existing localStorage favorites first
+      await syncLocalStorageToSupabase(user.id);
+      
+      // Load favorites from Supabase
+      const userFavorites = await getFavorites(user.id);
+      setFavorites(userFavorites);
+    } catch (err) {
+      console.error('Error loading favorites:', err);
+      setError('Failed to load favorites. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -38,9 +61,20 @@ const Favorites: React.FC = () => {
     setSelectedProvider(null);
   };
 
-  const handleRemoveFavorite = (id: string) => {
-    removeFavorite(user?.id || '', id);
-    setFavorites(favorites.filter(fav => fav.id !== id));
+  const handleRemoveFavorite = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const success = await removeFavorite(user.id, id);
+      if (success) {
+        setFavorites(favorites.filter(fav => fav.id !== id));
+      } else {
+        setError('Failed to remove favorite. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error removing favorite:', err);
+      setError('Failed to remove favorite. Please try again.');
+    }
   };
 
   return (
@@ -48,9 +82,27 @@ const Favorites: React.FC = () => {
       <div className="flex items-center gap-2 mb-6">
         <Heart size={24} className="text-red-500" />
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">My Favorite Providers</h1>
+        {loading && <Loader2 size={20} className="animate-spin text-gray-500" />}
       </div>
       
-      {favorites.length === 0 ? (
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          <p>{error}</p>
+          <button 
+            onClick={loadFavorites} 
+            className="mt-2 text-red-800 underline hover:no-underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+      
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 size={32} className="animate-spin text-gray-500" />
+          <span className="ml-2 text-gray-600">Loading favorites...</span>
+        </div>
+      ) : favorites.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <div className="flex justify-center mb-4">
             <Heart size={48} className="text-gray-300" />
