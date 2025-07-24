@@ -8,6 +8,21 @@ import CommunityContributions from '../components/CommunityContributions';
 import { getVoiceCalls, LocalVoiceCall, deleteVoiceCall } from '../services/storage';
 import { useCallResultsByIds } from '../hooks/useCallResults';
 
+// Define enhanced voice call type
+interface EnrichedVoiceCall extends LocalVoiceCall {
+  callResult?: {
+    provider_npi: string;
+    phone_number: string;
+    status: "calling" | "completed" | "failed";
+    availability_status?: string;
+    insurance_accepted?: string;
+    appointment_types_available?: string;
+    availability_timeframe?: string;
+    specific_availability?: string;
+    recording_url?: string;
+  };
+}
+
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [voiceCalls, setVoiceCalls] = useState<LocalVoiceCall[]>([]);
@@ -22,7 +37,7 @@ const Dashboard: React.FC = () => {
   const callIds = voiceCalls.map(call => call.call_id).filter(Boolean) as string[];
   
   // Use real-time call results from Supabase
-  const { callResults: realTimeCallResults, getCallResult } = useCallResultsByIds({
+  const { getCallResult } = useCallResultsByIds({
     callIds,
     autoRefresh: true,
     refreshInterval: 5000, // Check every 5 seconds for updates
@@ -138,18 +153,18 @@ const Dashboard: React.FC = () => {
   }, [user, fetchVoiceCalls]);
 
   // Merge local voice calls with real-time Supabase data
-  const enrichedVoiceCalls = voiceCalls.map(call => {
+  const enrichedVoiceCalls: EnrichedVoiceCall[] = voiceCalls.map(call => {
     const realTimeResult = call.call_id ? getCallResult(call.call_id) : null;
     
     // If we have real-time data from Supabase, use it to update the call status
     if (realTimeResult && realTimeResult.status === 'completed') {
       return {
         ...call,
-        status: 'completed',
+        status: 'completed' as const,
         availability_found: realTimeResult.availability_status?.toLowerCase().includes('accepting') || 
                            realTimeResult.availability_status?.toLowerCase().includes('available') ||
                            false,
-        next_available: realTimeResult.availability_timeframe || realTimeResult.specific_availability || null,
+        next_available: realTimeResult.availability_timeframe || realTimeResult.specific_availability || undefined,
         // Store the full call result for detailed display
         callResult: realTimeResult,
       };
@@ -298,7 +313,34 @@ const Dashboard: React.FC = () => {
           </div>
           
           {showResults && (
-            <AvailabilityResults calls={availabilityFound} />
+            <AvailabilityResults calls={availabilityFound.map(call => {
+              // Create LocalVoiceCall without callResult property
+              const localCall: LocalVoiceCall = {
+                id: call.id,
+                provider_npi: call.provider_npi,
+                provider_name: call.provider_name,
+                provider_phone: call.provider_phone,
+                status: call.status,
+                call_duration: call.call_duration,
+                availability_found: call.availability_found,
+                next_available: call.next_available,
+                next_available_slots: call.next_available_slots,
+                appointment_types: call.appointment_types,
+                accepting_new_patients: call.accepting_new_patients,
+                office_hours: call.office_hours,
+                special_notes: call.special_notes,
+                call_summary: call.call_summary,
+                transcript: call.transcript,
+                created_at: call.created_at,
+                updated_at: call.updated_at,
+                call_id: call.call_id,
+                message: call.message,
+                appointment_type_requested: call.appointment_type_requested,
+                verified_at: call.verified_at,
+                dispatch_timestamp: call.dispatch_timestamp,
+              };
+              return localCall;
+            })} />
           )}
         </div>
       )}

@@ -113,12 +113,6 @@ interface CallResult {
   specific_availability?: string
 }
 
-interface AvailabilityInfo {
-  acceptingNewPatients: boolean
-  nextAvailable: string | null
-  specialNotes: string[]
-}
-
 interface EnhancedProviderCardProps {
   provider: NPIProvider
   callResult?: CallResult
@@ -163,42 +157,6 @@ export function EnhancedProviderCard({
     }
     return phone
   }
-
-  // Parse availability details
-  const parseAvailabilityDetails = (details: string | undefined): AvailabilityInfo | null => {
-    if (!details) return null
-
-    try {
-      const lines = details.split("\n").filter((line) => line.trim())
-      const parsed: AvailabilityInfo = {
-        acceptingNewPatients: false,
-        nextAvailable: null,
-        specialNotes: [],
-      }
-
-      lines.forEach((line) => {
-        const lower = line.toLowerCase()
-        if (lower.includes("accepting new patients") || lower.includes("taking new patients")) {
-          parsed.acceptingNewPatients = !lower.includes("not") && !lower.includes("n't")
-        }
-        if (lower.includes("next available") || lower.includes("earliest") || lower.includes("appointment")) {
-          const dateMatch = line.match(/(\w+\s+\d{1,2}|\d{1,2}\/\d{1,2}|\d{1,2}-\d{1,2})/i)
-          if (dateMatch) {
-            parsed.nextAvailable = dateMatch[0]
-          }
-        }
-        if (lower.includes("note") || lower.includes("special") || lower.includes("requirement")) {
-          parsed.specialNotes.push(line)
-        }
-      })
-
-      return parsed
-    } catch {
-      return null
-    }
-  }
-
-  const availabilityInfo = parseAvailabilityDetails(callResult?.availability_details)
 
   // Truncate summary for display
   const truncatedSummary = callResult?.summary
