@@ -142,3 +142,6 @@ export interface VoiceAgentConfig {
   phone_number_id: string;
   appointment_verification_prompt: string;
 }
+
+// Export community types
+export * from './community';

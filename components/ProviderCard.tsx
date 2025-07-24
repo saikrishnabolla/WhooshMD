@@ -1,11 +1,13 @@
 'use client'
 
 import React from 'react';
-import { Phone, MapPin, Heart, ExternalLink, Calendar, Stethoscope, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Phone, MapPin, Heart, ExternalLink, Calendar, Stethoscope, CheckCircle, Clock, AlertCircle, Loader2, Star, Users } from 'lucide-react';
 import { Provider } from '../types';
 import { isFavorite, addFavorite, removeFavorite } from '../services/favorites';
 import { useAuth } from '../context/AuthContext';
 import { navigateToUrl } from '../lib/utils';
+import { ProviderSummary } from '../types/community';
+import { formatHelpers } from '../services/community';
 
 interface CallResult {
   provider_npi: string;
@@ -26,6 +28,7 @@ interface ProviderCardProps {
   onSelectionChange?: (provider: Provider, selected: boolean) => void;
   callResult?: CallResult;
   showSelectionCheckbox?: boolean;
+  communitySummary?: ProviderSummary | null;
 }
 
 const ProviderCard: React.FC<ProviderCardProps> = ({ 
@@ -34,7 +37,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   isSelected = false,
   onSelectionChange,
   callResult,
-  showSelectionCheckbox = true
+  showSelectionCheckbox = true,
+  communitySummary
 }) => {
   const { user } = useAuth();
   const [favorite, setFavorite] = React.useState(false);
@@ -231,9 +235,52 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             </div>
           )}
           
-          {/* NPI Badge */}
-          <div className="inline-flex items-center px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
-            NPI: {provider.number}
+          {/* Community Rating */}
+          {communitySummary && communitySummary.avg_rating && (
+            <div className="flex items-center text-sm text-gray-600 mb-2">
+              <Star size={14} className="mr-1 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium text-gray-900">
+                {communitySummary.avg_rating.toFixed(1)}
+              </span>
+              <span className="ml-1">({communitySummary.total_ratings} reviews)</span>
+              {communitySummary.total_reviews > 0 && (
+                <span className="ml-2 text-green-600">
+                  {formatHelpers.getRecommendationPercentage(communitySummary.recommend_count, communitySummary.total_reviews)}% recommend
+                </span>
+              )}
+            </div>
+          )}
+          
+          {/* Community Availability */}
+          {communitySummary && communitySummary.latest_accepting_patients !== null && (
+            <div className="flex items-center text-xs text-gray-600 mb-2">
+              {communitySummary.latest_accepting_patients ? (
+                <CheckCircle size={12} className="mr-1 text-green-500" />
+              ) : (
+                <AlertCircle size={12} className="mr-1 text-red-500" />
+              )}
+              <span>
+                {communitySummary.latest_accepting_patients ? 'Accepting patients' : 'Not accepting patients'}
+              </span>
+              {communitySummary.latest_wait_time && (
+                <span className="ml-2">
+                  • {formatHelpers.formatWaitTime(communitySummary.latest_wait_time)}
+                </span>
+              )}
+            </div>
+          )}
+          
+          {/* NPI Badge and Community Badge */}
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+              NPI: {provider.number}
+            </div>
+            {communitySummary && (communitySummary.total_ratings > 0 || communitySummary.total_reviews > 0) && (
+              <div className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full text-xs text-blue-700">
+                <Users size={10} className="mr-1" />
+                Community verified
+              </div>
+            )}
           </div>
         </div>
         
