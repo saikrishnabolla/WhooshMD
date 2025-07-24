@@ -219,6 +219,24 @@ export const getAppointmentStats = (userId: string) => {
   }
 };
 
+export const deleteVoiceCall = (userId: string, callId: string): boolean => {
+  try {
+    const calls = getVoiceCalls(userId);
+    const updatedCalls = calls.filter(call => call.id !== callId);
+    
+    if (updatedCalls.length === calls.length) {
+      console.error('Voice call not found for deletion:', callId);
+      return false;
+    }
+    
+    localStorage.setItem(getVoiceCallsKey(userId), JSON.stringify(updatedCalls));
+    return true;
+  } catch (error) {
+    console.error('Error deleting voice call:', error);
+    return false;
+  }
+};
+
 export const clearVoiceCalls = (userId: string): void => {
   try {
     localStorage.removeItem(getVoiceCallsKey(userId));

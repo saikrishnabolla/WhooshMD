@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Phone, Calendar, Clock, AlertCircle, RefreshCw, Eye, Bell } from 'lucide-react';
+import { Phone, Calendar, Clock, AlertCircle, RefreshCw, Eye, Bell, Trash2 } from 'lucide-react';
 import AvailabilityResults from '../components/AvailabilityResults';
 import CommunityContributions from '../components/CommunityContributions';
-import { getVoiceCalls, LocalVoiceCall } from '../services/storage';
+import { getVoiceCalls, LocalVoiceCall, deleteVoiceCall } from '../services/storage';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -14,6 +14,7 @@ const Dashboard: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
+  const [deletingCalls, setDeletingCalls] = useState<Set<string>>(new Set());
   const voiceCallsRef = useRef<LocalVoiceCall[]>([]);
 
   const fetchVoiceCalls = useCallback(async () => {
@@ -33,6 +34,59 @@ const Dashboard: React.FC = () => {
     setRefreshing(true);
     await fetchVoiceCalls();
     setRefreshing(false);
+  };
+
+  const handleDeleteCall = async (callId: string) => {
+    if (!user) return;
+    
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to delete this voice call? This action cannot be undone.')) {
+      return;
+    }
+    
+    setDeletingCalls(prev => new Set(prev).add(callId));
+    
+    try {
+      const success = deleteVoiceCall(user.id, callId);
+      if (success) {
+        // Refresh the calls list
+        await fetchVoiceCalls();
+      } else {
+        alert('Failed to delete voice call. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting voice call:', error);
+      alert('Failed to delete voice call. Please try again.');
+    } finally {
+      setDeletingCalls(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(callId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleClearAllCalls = async () => {
+    if (!user || voiceCalls.length === 0) return;
+    
+    // Confirm deletion
+    if (!window.confirm(`Are you sure you want to delete all ${voiceCalls.length} voice calls? This action cannot be undone.`)) {
+      return;
+    }
+    
+    setRefreshing(true);
+    
+    try {
+      const { clearVoiceCalls } = await import('../services/storage');
+      clearVoiceCalls(user.id);
+      // Refresh the calls list
+      await fetchVoiceCalls();
+    } catch (error) {
+      console.error('Error clearing all voice calls:', error);
+      alert('Failed to clear voice calls. Please try again.');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -222,6 +276,16 @@ const Dashboard: React.FC = () => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-900">Voice Calls History</h2>
+            {voiceCalls.length > 0 && (
+              <button
+                onClick={handleClearAllCalls}
+                disabled={refreshing}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 size={16} />
+                Clear All ({voiceCalls.length})
+              </button>
+            )}
           </div>
         </div>
 
@@ -284,6 +348,18 @@ const Dashboard: React.FC = () => {
                           No Availability
                         </span>
                       )}
+                      <button
+                        onClick={() => handleDeleteCall(call.id)}
+                        disabled={deletingCalls.has(call.id)}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete voice call"
+                      >
+                        {deletingCalls.has(call.id) ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                      </button>
                     </div>
                   </div>
                   
