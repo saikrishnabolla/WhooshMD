@@ -19,6 +19,11 @@ interface CallResult {
   sentiment?: string;
   call_date?: string;
   recording_url?: string;
+  // Additional Omnidim fields
+  insurance_accepted?: string;
+  appointment_types_available?: string;
+  availability_timeframe?: string;
+  specific_availability?: string;
 }
 
 interface ProviderCardProps {
@@ -333,8 +338,40 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                 {availabilityInfo.status}
               </span>
             </div>
+            
+            {/* Detailed Omnidim Information */}
+            <div className="space-y-2 mt-3">
+              {callResult?.insurance_accepted && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Insurance:</span>
+                  <span className="ml-1 text-gray-600">{callResult.insurance_accepted}</span>
+                </div>
+              )}
+              
+              {callResult?.appointment_types_available && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Appointments:</span>
+                  <span className="ml-1 text-gray-600">{callResult.appointment_types_available}</span>
+                </div>
+              )}
+              
+              {callResult?.availability_timeframe && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Next Available:</span>
+                  <span className="ml-1 text-gray-600">{callResult.availability_timeframe}</span>
+                </div>
+              )}
+              
+              {callResult?.specific_availability && (
+                <div className="text-xs">
+                  <span className="font-medium text-gray-700">Hours:</span>
+                  <span className="ml-1 text-gray-600">{callResult.specific_availability}</span>
+                </div>
+              )}
+            </div>
+            
             {availabilityInfo.summary && (
-              <p className="text-xs text-gray-600 line-clamp-2">
+              <p className="text-xs text-gray-600 line-clamp-2 mt-2 pt-2 border-t border-gray-200">
                 {availabilityInfo.summary}
               </p>
             )}
