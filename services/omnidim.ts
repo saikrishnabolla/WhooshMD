@@ -5,7 +5,7 @@ import { VoiceCallResult, AppointmentSlot } from '../types';
 const OMNIDIM_CONFIG = {
   apiUrl: 'https://backend.omnidim.io/api/v1/calls/dispatch',
   agentId: 1060,
-  testPhoneNumber: '+14153790645', // Currently hardcoded for testing
+  testPhoneNumber: '+16175712439', // Currently hardcoded for testing
   webhookUrl: process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://yourapp.com/api/webhook/call-result',
   apiKey: process.env.OMNIDIM_API_KEY,
 };
