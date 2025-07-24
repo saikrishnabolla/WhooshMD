@@ -308,7 +308,7 @@ export const communityService = {
 
     // Note: Insurance filtering would require a join or separate query
     // This is a simplified version
-    query = query.order('avg_rating', { ascending: false, nullsLast: true });
+    query = query.order('avg_rating', { ascending: false, nullsFirst: false });
 
     const { data, error } = await query;
     if (error) throw error;

@@ -7,10 +7,6 @@ import {
   Calendar, 
   Shield, 
   MessageSquare, 
-  Clock,
-  Phone,
-  Globe,
-  User,
   CheckCircle,
   AlertTriangle
 } from 'lucide-react';
@@ -133,8 +129,9 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
         onClose();
       }, 1500);
 
-    } catch (error: any) {
-      setSubmitError(error.message || 'Failed to submit. Please try again.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit. Please try again.';
+      setSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -647,7 +644,7 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key as any)}
+                onClick={() => setActiveTab(key as 'rating' | 'review' | 'availability' | 'insurance')}
                 className={`py-4 border-b-2 font-medium text-sm flex items-center ${
                   activeTab === key
                     ? 'border-primary-500 text-primary-600'

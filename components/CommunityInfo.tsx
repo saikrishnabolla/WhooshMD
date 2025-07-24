@@ -15,20 +15,13 @@ import {
   CheckCircle,
   AlertCircle,
   Plus,
-  Edit3,
-  Filter,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Provider } from '../types';
 import { 
-  CommunityDataResponse, 
-  ProviderReview, 
-  ProviderAvailabilityUpdate,
-  ProviderInsurance,
-  ProviderRating,
-  ProviderSummary
+  CommunityDataResponse
 } from '../types/community';
 import communityService, { formatHelpers } from '../services/community';
 
@@ -45,11 +38,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'availability' | 'insurance'>('overview');
   const [showAllReviews, setShowAllReviews] = useState(false);
 
-  useEffect(() => {
-    loadCommunityData();
-  }, [provider.number, user]);
-
-  const loadCommunityData = async () => {
+  const loadCommunityData = React.useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -64,7 +53,11 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
     } finally {
       setLoading(false);
     }
-  };
+  }, [provider.number, user]);
+
+  useEffect(() => {
+    loadCommunityData();
+  }, [loadCommunityData]);
 
   const handleVoteOnReview = async (reviewId: string, isHelpful: boolean) => {
     if (!user) return;
@@ -552,7 +545,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => setActiveTab(key as any)}
+              onClick={() => setActiveTab(key as 'overview' | 'reviews' | 'availability' | 'insurance')}
               className={`py-4 border-b-2 font-medium text-sm flex items-center ${
                 activeTab === key
                   ? 'border-primary-500 text-primary-600'
