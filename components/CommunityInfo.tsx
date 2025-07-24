@@ -102,7 +102,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
       if (response.ok) {
         const data = await response.json();
         // Get the most recent call result for this provider
-        const providerResult = data.results?.find((result: any) => result.provider_npi === provider.number);
+        const providerResult = data.results?.find((result: OmnidimCallResult) => result.provider_npi === provider.number);
         setOmnidimData(providerResult || null);
       }
     } catch (err) {
