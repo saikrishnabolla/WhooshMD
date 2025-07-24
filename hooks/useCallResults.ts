@@ -11,19 +11,11 @@ interface CallResult {
   sentiment?: string
   call_date?: string
   recording_url?: string
-  // New extracted variables fields
-  extracted_variables?: string
-  clinic_name?: string
-  contact_person?: string
+  // User-relevant extracted variables only (not internal technical details)
   insurance_accepted?: string
   appointment_types_available?: string
   availability_timeframe?: string
   specific_availability?: string
-  call_outcome_quality?: string
-  clinic_phone_verified?: string
-  follow_up_needed?: string
-  callback_instructions?: string
-  additional_requirements?: string
 }
 
 interface UseCallResultsOptions {

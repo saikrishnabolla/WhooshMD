@@ -379,24 +379,24 @@ const Dashboard: React.FC = () => {
                                   <strong>Status:</strong> {realTimeResult.availability_status}
                                 </p>
                               )}
-                              {realTimeResult.clinic_name && (
-                                <p className="text-sm text-blue-800">
-                                  <strong>Clinic:</strong> {realTimeResult.clinic_name}
-                                </p>
-                              )}
                               {realTimeResult.insurance_accepted && (
                                 <p className="text-sm text-blue-800">
                                   <strong>Insurance:</strong> {realTimeResult.insurance_accepted}
                                 </p>
                               )}
+                              {realTimeResult.appointment_types_available && (
+                                <p className="text-sm text-blue-800">
+                                  <strong>Appointments:</strong> {realTimeResult.appointment_types_available}
+                                </p>
+                              )}
+                              {realTimeResult.availability_timeframe && (
+                                <p className="text-sm text-blue-800">
+                                  <strong>Next Available:</strong> {realTimeResult.availability_timeframe}
+                                </p>
+                              )}
                               {realTimeResult.specific_availability && (
                                 <p className="text-sm text-blue-800">
                                   <strong>Hours:</strong> {realTimeResult.specific_availability}
-                                </p>
-                              )}
-                              {realTimeResult.call_outcome_quality && (
-                                <p className="text-sm text-blue-800">
-                                  <strong>Call Quality:</strong> {realTimeResult.call_outcome_quality}
                                 </p>
                               )}
                             </div>
