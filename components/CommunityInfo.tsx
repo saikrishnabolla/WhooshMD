@@ -816,15 +816,15 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
                 Share Your Experience
               </button>
             ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">Sign in to contribute information</p>
-                <a
-                  href="/login"
-                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
-                >
-                  Sign In to Contribute
-                </a>
-              </div>
+                             <div className="space-y-3">
+                 <p className="text-sm text-gray-500">Sign in to contribute information</p>
+                 <a
+                   href="/dashboard"
+                   className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                 >
+                   Sign In to Contribute
+                 </a>
+               </div>
             )}
           </div>
         ) : (
