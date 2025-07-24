@@ -251,6 +251,27 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             </div>
           )}
           
+          {/* No Community Data - Contribution Prompt */}
+          {!communitySummary && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 mb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center text-sm">
+                  <Users size={14} className="mr-2 text-blue-600" />
+                  <span className="text-gray-700">No community reviews yet</span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDetails(provider);
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Be first to review
+                </button>
+              </div>
+            </div>
+          )}
+          
           {/* Community Availability */}
           {communitySummary && communitySummary.latest_accepting_patients !== null && (
             <div className="flex items-center text-xs text-gray-600 mb-2">

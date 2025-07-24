@@ -261,34 +261,56 @@ export const insuranceService = {
 // Community Summary Service
 export const communityService = {
   async getProviderSummary(providerNpi: string): Promise<ProviderSummary | null> {
-    const { data, error } = await supabase
-      .from('provider_summary')
-      .select('*')
-      .eq('provider_npi', providerNpi)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('provider_summary')
+        .select('*')
+        .eq('provider_npi', providerNpi)
+        .single();
 
-    if (error && error.code !== 'PGRST116') {
-      throw error;
+      if (error && error.code !== 'PGRST116') {
+        // If it's a 406 error (Not Acceptable) or view doesn't exist, return null gracefully
+        if (error.message?.includes('406') || error.message?.includes('relation "provider_summary" does not exist')) {
+          console.warn('Community features not yet set up or no data available for provider:', providerNpi);
+          return null;
+        }
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      console.warn('Error fetching provider summary for NPI', providerNpi, ':', error);
+      return null;
     }
-    return data;
   },
 
   async getFullCommunityData(providerNpi: string, userId?: string): Promise<CommunityDataResponse> {
-    const [summary, reviews, availability, insurance, userRating] = await Promise.all([
-      this.getProviderSummary(providerNpi),
-      reviewsService.getProviderReviews(providerNpi),
-      availabilityService.getLatestAvailability(providerNpi),
-      insuranceService.getProviderInsurance(providerNpi),
-      userId ? ratingsService.getUserRating(userId, providerNpi) : Promise.resolve(null)
-    ]);
+    try {
+      const [summary, reviews, availability, insurance, userRating] = await Promise.allSettled([
+        this.getProviderSummary(providerNpi),
+        reviewsService.getProviderReviews(providerNpi),
+        availabilityService.getLatestAvailability(providerNpi),
+        insuranceService.getProviderInsurance(providerNpi),
+        userId ? ratingsService.getUserRating(userId, providerNpi) : Promise.resolve(null)
+      ]);
 
-    return {
-      summary,
-      reviews,
-      latest_availability: availability,
-      insurance_plans: insurance,
-      user_rating: userRating
-    };
+      return {
+        summary: summary.status === 'fulfilled' ? summary.value : null,
+        reviews: reviews.status === 'fulfilled' ? reviews.value : [],
+        latest_availability: availability.status === 'fulfilled' ? availability.value : null,
+        insurance_plans: insurance.status === 'fulfilled' ? insurance.value : [],
+        user_rating: userRating.status === 'fulfilled' ? userRating.value : null
+      };
+    } catch (error) {
+      console.error('Error fetching full community data:', error);
+      // Return empty structure instead of throwing
+      return {
+        summary: null,
+        reviews: [],
+        latest_availability: null,
+        insurance_plans: [],
+        user_rating: null
+      };
+    }
   },
 
   async searchProvidersWithCommunityData(filters: CommunitySearchFilters): Promise<ProviderSummary[]> {
