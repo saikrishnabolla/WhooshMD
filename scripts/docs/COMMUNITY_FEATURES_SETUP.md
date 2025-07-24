@@ -15,7 +15,7 @@ The community features enable users to:
 ## Files Created/Modified
 
 ### New Files
-- `community-features-schema.sql` - Database schema for community features
+- `scripts/sql/community-features-schema.sql` - Database schema for community features
 - `types/community.ts` - TypeScript types for community data
 - `services/community.ts` - Service layer for community operations
 - `components/CommunityInfo.tsx` - Main component for displaying community data
@@ -32,7 +32,7 @@ The community features enable users to:
 Execute the community features schema in your Supabase SQL Editor:
 
 ```sql
--- Run the contents of community-features-schema.sql in Supabase SQL Editor
+-- Run the contents of scripts/sql/community-features-schema.sql in Supabase SQL Editor
 ```
 
 This creates the following tables:

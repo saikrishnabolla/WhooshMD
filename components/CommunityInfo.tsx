@@ -108,7 +108,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
             <span className="text-sm text-gray-600">{summary.total_ratings} ratings</span>
           </div>
           
-          <div className="flex items-center gap-6">
+                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-gray-900 mb-1">
                 {summary.avg_rating?.toFixed(1) || 'N/A'}
@@ -171,7 +171,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
         </div>
 
         {/* Quick Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Availability Card */}
           {communityData.latest_availability && (
             <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -518,16 +518,17 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
   return (
     <div className="bg-white rounded-lg border border-gray-200 animate-fade-scale">
       {/* Header */}
-      <div className="border-b border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Community Information</h2>
+      <div className="border-b border-gray-200 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Community Information</h2>
           {user && (
             <button
               onClick={onContribute}
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="inline-flex items-center px-3 sm:px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm sm:text-base"
             >
-              <Plus size={16} className="mr-2" />
-              Contribute
+              <Plus size={14} className="mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Contribute</span>
+              <span className="sm:hidden">Add Info</span>
             </button>
           )}
         </div>
@@ -535,7 +536,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
-        <nav className="flex space-x-8 px-6">
+        <nav className="flex overflow-x-auto space-x-2 sm:space-x-8 px-4 sm:px-6">
           {[
             { key: 'overview', label: 'Overview', icon: TrendingUp },
             { key: 'reviews', label: 'Reviews', icon: MessageSquare },
@@ -545,21 +546,22 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, o
             <button
               key={key}
               onClick={() => setActiveTab(key as 'overview' | 'reviews' | 'availability' | 'insurance')}
-              className={`py-4 border-b-2 font-medium text-sm flex items-center ${
+              className={`py-4 border-b-2 font-medium text-sm flex items-center whitespace-nowrap ${
                 activeTab === key
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <Icon size={16} className="mr-2" />
-              {label}
+              <Icon size={16} className="mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">{label}</span>
+              <span className="sm:hidden">{key === 'overview' ? 'Overview' : key === 'reviews' ? 'Reviews' : key === 'availability' ? 'Avail.' : 'Insur.'}</span>
             </button>
           ))}
         </nav>
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'reviews' && renderReviews()}
         {activeTab === 'availability' && renderAvailability()}
