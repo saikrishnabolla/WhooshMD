@@ -106,12 +106,23 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
           if (!reviewForm.review_text.trim()) {
             throw new Error('Please write a review');
           }
-          await communityService.reviews.createReview(user.id, provider.number, reviewForm);
+          // Convert empty string dates to null to prevent PostgreSQL errors
+          const cleanedReviewForm = {
+            ...reviewForm,
+            visit_date: reviewForm.visit_date || null
+          };
+          await communityService.reviews.createReview(user.id, provider.number, cleanedReviewForm);
           setSubmitSuccess('Review submitted successfully!');
           break;
         
         case 'availability':
-          await communityService.availability.createAvailabilityUpdate(user.id, provider.number, availabilityForm);
+          // Convert empty string dates to null to prevent PostgreSQL errors
+          const cleanedAvailabilityForm = {
+            ...availabilityForm,
+            next_available_appointment: availabilityForm.next_available_appointment || null,
+            last_contacted_date: availabilityForm.last_contacted_date || null
+          };
+          await communityService.availability.createAvailabilityUpdate(user.id, provider.number, cleanedAvailabilityForm);
           setSubmitSuccess('Availability information submitted successfully!');
           break;
         
@@ -119,7 +130,12 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
           if (!insuranceForm.insurance_name.trim()) {
             throw new Error('Please enter an insurance name');
           }
-          await communityService.insurance.createInsuranceInfo(user.id, provider.number, insuranceForm);
+          // Convert empty string dates to null to prevent PostgreSQL errors
+          const cleanedInsuranceForm = {
+            ...insuranceForm,
+            verification_date: insuranceForm.verification_date || null
+          };
+          await communityService.insurance.createInsuranceInfo(user.id, provider.number, cleanedInsuranceForm);
           setSubmitSuccess('Insurance information submitted successfully!');
           break;
       }
@@ -227,7 +243,7 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
           </label>
           <input
             type="date"
-            value={reviewForm.visit_date}
+            value={reviewForm.visit_date || ''}
             onChange={(e) => setReviewForm(prev => ({ ...prev, visit_date: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
@@ -343,7 +359,7 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
           </label>
           <input
             type="date"
-            value={availabilityForm.next_available_appointment}
+            value={availabilityForm.next_available_appointment || ''}
             onChange={(e) => setAvailabilityForm(prev => ({ ...prev, next_available_appointment: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
@@ -375,7 +391,7 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
           </label>
           <input
             type="date"
-            value={availabilityForm.last_contacted_date}
+            value={availabilityForm.last_contacted_date || ''}
             onChange={(e) => setAvailabilityForm(prev => ({ ...prev, last_contacted_date: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
@@ -541,7 +557,7 @@ const ContributionModal: React.FC<ContributionModalProps> = ({
           </label>
           <input
             type="date"
-            value={insuranceForm.verification_date}
+            value={insuranceForm.verification_date || ''}
             onChange={(e) => setInsuranceForm(prev => ({ ...prev, verification_date: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />

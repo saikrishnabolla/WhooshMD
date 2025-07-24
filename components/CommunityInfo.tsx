@@ -7,7 +7,6 @@ import {
   Clock, 
   Calendar, 
   Shield, 
-  Users, 
   ThumbsUp, 
   ThumbsDown, 
   MessageSquare,
@@ -28,9 +27,10 @@ import communityService, { formatHelpers } from '../services/community';
 interface CommunityInfoProps {
   provider: Provider;
   onContribute?: () => void;
+  onDataLoad?: (data: CommunityDataResponse | null) => void;
 }
 
-const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute }) => {
+const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute, onDataLoad }) => {
   const { user } = useAuth();
   const [communityData, setCommunityData] = useState<CommunityDataResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,13 +47,14 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
         user?.id
       );
       setCommunityData(data);
+      onDataLoad?.(data);
     } catch (err) {
       console.error('Error loading community data:', err);
       setError('Failed to load community information');
     } finally {
       setLoading(false);
     }
-  }, [provider.number, user]);
+  }, [provider.number, user, onDataLoad]);
 
   useEffect(() => {
     loadCommunityData();
@@ -94,41 +95,8 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
   const renderOverview = () => {
     const summary = communityData?.summary;
     if (!summary) {
-      return (
-        <div className="text-center py-12">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
-            <Users className="mx-auto h-16 w-16 text-blue-400 mb-6" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">No Community Data Yet</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              This provider hasn&apos;t been reviewed by our community yet. You can be the first to share your experience and help others make informed decisions!
-            </p>
-            <div className="space-y-3">
-              {user ? (
-                <button
-                  onClick={onContribute}
-                  className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
-                >
-                  <Plus size={18} className="mr-2" />
-                  Share Your Experience
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-500">Sign in to contribute information</p>
-                  <button
-                    onClick={() => window.location.href = '/dashboard'}
-                    className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    Sign In to Contribute
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="mt-6 text-xs text-gray-500">
-              <p>💡 Tip: Contributing helps build a valuable resource for everyone seeking healthcare providers!</p>
-            </div>
-          </div>
-        </div>
-      );
+      // Instead of showing "No Community Data Yet", return null to hide the section completely
+      return null;
     }
 
     return (
@@ -537,8 +505,18 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
     );
   }
 
+  // Only render the community section if there's actual community data
+  const hasAnyData = communityData?.summary || 
+                     (communityData?.reviews && communityData.reviews.length > 0) ||
+                     communityData?.latest_availability ||
+                     (communityData?.insurance_plans && communityData.insurance_plans.length > 0);
+
+  if (!hasAnyData) {
+    return null; // Hide the entire community section when no data exists
+  }
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
+    <div className="bg-white rounded-lg border border-gray-200 animate-fade-scale">
       {/* Header */}
       <div className="border-b border-gray-200 p-6">
         <div className="flex items-center justify-between">
