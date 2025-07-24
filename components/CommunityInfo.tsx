@@ -100,7 +100,7 @@ const CommunityInfo: React.FC<CommunityInfoProps> = ({ provider, onContribute })
             <Users className="mx-auto h-16 w-16 text-blue-400 mb-6" />
             <h3 className="text-xl font-semibold text-gray-900 mb-3">No Community Data Yet</h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              This provider hasn't been reviewed by our community yet. You can be the first to share your experience and help others make informed decisions!
+              This provider hasn&apos;t been reviewed by our community yet. You can be the first to share your experience and help others make informed decisions!
             </p>
             <div className="space-y-3">
               {user ? (
