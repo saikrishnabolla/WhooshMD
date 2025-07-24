@@ -12,7 +12,7 @@ const CALL_DISPATCH_CONFIG = {
   enabled: true,
   mock_mode: process.env.NODE_ENV === 'development',
   max_providers: 6,
-  test_phone_number: '+14153790645',
+      test_phone_number: '+16175712439',
   use_test_number: true,
 };
 

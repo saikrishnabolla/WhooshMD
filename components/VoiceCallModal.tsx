@@ -116,7 +116,7 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
               addVoiceCall({
                 provider_npi: result.provider_number,
                 provider_name: result.provider_name,
-                provider_phone: '+14153790645', // Test number
+                provider_phone: '+16175712439', // Test number
                 status: 'initiated',
                 availability_found: false,
                 call_id: result.call_id,
