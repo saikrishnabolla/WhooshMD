@@ -1,11 +1,13 @@
 'use client'
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Globe, Heart, Calendar, Stethoscope, ArrowLeft } from 'lucide-react';
 import { Provider } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { navigateToUrl } from '../lib/utils';
 import { isFavorite, addFavorite, removeFavorite } from '../services/favorites';
+import CommunityInfo from './CommunityInfo';
+import ContributionModal from './ContributionModal';
 
 interface ProviderDetailProps {
   provider: Provider;
@@ -15,6 +17,7 @@ interface ProviderDetailProps {
 const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) => {
   const { user } = useAuth();
   const [favorite, setFavorite] = React.useState(false);
+  const [showContributionModal, setShowContributionModal] = useState(false);
 
   React.useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -285,6 +288,14 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
             </div>
           )}
           
+          {/* Community Information Section */}
+          <div className="mt-8">
+            <CommunityInfo 
+              provider={provider} 
+              onContribute={() => setShowContributionModal(true)}
+            />
+          </div>
+
           <div className="mt-8 pt-4 border-t border-gray-200">
             <div className="text-sm text-gray-500 flex flex-wrap items-center justify-between">
               <div>
@@ -307,6 +318,17 @@ const ProviderDetail: React.FC<ProviderDetailProps> = ({ provider, onClose }) =>
           </div>
         </div>
       </div>
+
+      {/* Contribution Modal */}
+      <ContributionModal
+        provider={provider}
+        isOpen={showContributionModal}
+        onClose={() => setShowContributionModal(false)}
+        onSuccess={() => {
+          // Could trigger a refresh of community data here if needed
+          console.log('Contribution submitted successfully');
+        }}
+      />
     </div>
   );
 };
