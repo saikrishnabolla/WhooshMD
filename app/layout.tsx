@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   keywords: 'healthcare providers, doctors, medical professionals, NPI registry, voice agent, appointments',
   authors: [{ name: 'Whoosh MD Team' }],
   robots: 'index, follow',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     title: 'Whoosh MD - Find Healthcare Providers Near You',
     description: 'Quickly find healthcare providers near you with Whoosh MD. Search by name, specialty, location and more using NPI Registry data.',

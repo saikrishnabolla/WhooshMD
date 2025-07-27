@@ -165,20 +165,20 @@ const Home: React.FC = () => {
                 />
               </Link>
 
-              <button className="group flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors font-medium">
+              {/* <button className="group flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors font-medium">
                 <div className="w-12 h-12 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm">
                   <Play size={16} className="ml-0.5" />
                 </div>
                 Watch how it works
-              </button>
+              </button> */}
             </div>
 
             {/* Social proof - minimal */}
-            <div className="text-center text-gray-500 text-sm animate-fade-in delay-500">
+            {/* <div className="text-center text-gray-500 text-sm animate-fade-in delay-500">
               Trusted by{" "}
               <span className="font-medium text-gray-700">10,000+</span>{" "}
               patients across the US
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
