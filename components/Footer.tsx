@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Heart, Github, Stethoscope } from 'lucide-react';
 import { Link } from './ui/Link';
 
@@ -9,7 +10,13 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center gap-2 text-primary-600 mb-4">
-              <Stethoscope size={24} />
+              <Image 
+                src="/whoosh-logo.png" 
+                alt="Whoosh MD Logo" 
+                width={24}
+                height={24}
+                className="w-6 h-6 object-contain"
+              />
               <h2 className="text-lg font-bold">Whoosh MD</h2>
             </div>
             <p className="text-gray-600 text-sm">
@@ -35,11 +42,7 @@ const Footer: React.FC = () => {
                   My Favorites
                 </Link>
               </li>
-              <li>
-                <Link href="/about" className="text-gray-600 hover:text-primary-600 transition-colors text-sm">
-                  About
-                </Link>
-              </li>
+              
             </ul>
           </div>
           

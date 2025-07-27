@@ -15,7 +15,7 @@ const About: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative">
           <div className="max-w-3xl">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
-              Skip the phone-tag.<br />See a doctor this week.
+              About us<br />Skip the phone-tag. See a doctor this week.
             </h1>
             <p className="text-lg sm:text-xl text-white/80 mb-8">
               We&apos;re transforming healthcare access with real-time availability data and 

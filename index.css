@@ -98,21 +98,24 @@ body {
 
 /* Enhanced background */
 body {
-  background-color: #f8fafc;
-  background-image: 
-    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
+  background: linear-gradient(to bottom right, #faf5ff, #ffffff, #faf5ff);
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.025em;
   font-feature-settings: "salt" 1;
+  font-weight: 600;
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
 }
 
 /* Custom utilities */
 .glass-card {
-  @apply bg-white/80 backdrop-blur-lg border border-secondary-200/30 shadow-lg hover:shadow-xl transition-all duration-300;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  @apply shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl;
 }
 
 /* Mobile menu animation */
@@ -149,8 +152,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .auth-button-custom {
-  @apply w-full flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-sm text-base font-medium text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 !important;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  @apply w-full flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-sm text-base font-semibold text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 !important;
+  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%) !important;
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif !important;
 }
 
 .auth-input-custom {
@@ -176,11 +180,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Custom button styles */
 .btn-primary {
-  @apply bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 
-         text-white py-3 px-8 rounded-2xl font-medium transition-all duration-300 
-         shadow-lg hover:shadow-xl hover:shadow-primary-500/20 hover:-translate-y-0.5
-         focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:outline-none;
+  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%);
+  @apply text-white py-3 px-8 rounded-xl font-semibold transition-all duration-300 
+         shadow-lg hover:shadow-xl hover:shadow-purple-500/20 hover:-translate-y-0.5
+         focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none;
   backdrop-filter: blur(8px);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #7C3AED 0%, #9333EA 50%, #A855F7 100%);
 }
 
 .btn-secondary {
@@ -193,8 +201,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Card styles */
 .card {
-  @apply bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl border border-white/20;
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
+  backdrop-filter: blur(20px);
+  @apply rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl border border-white/20;
 }
 
 /* Hover effects */

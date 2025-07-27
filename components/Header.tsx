@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Stethoscope, Menu, X } from 'lucide-react';
 import { Link } from '../components/ui/Link';
 import { useAppContext } from '../context/AppContext';
@@ -31,7 +32,13 @@ const Header: React.FC = () => {
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 text-primary-600 no-underline">
-          <Stethoscope size={28} className="text-primary-600" />
+          <Image 
+            src="/whoosh-logo.png" 
+            alt="Whoosh MD Logo" 
+            width={32}
+            height={32}
+            className="w-8 h-8 object-contain"
+          />
           <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
             Whoosh MD
           </h1>
@@ -64,6 +71,10 @@ const Header: React.FC = () => {
             My Favorites
             <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
           </Link>
+          <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors relative group">
+            About us
+            <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+          </Link>
           {user ? (
             <>
               <Link href="/dashboard" className="text-gray-700 hover:text-primary-600 transition-colors relative group">
@@ -88,7 +99,7 @@ const Header: React.FC = () => {
             href="/search" 
             className="btn-primary shadow-sm hover:shadow-md hover-lift"
           >
-            Search Now
+            Get Started
           </Link>
         </nav>
         
@@ -120,7 +131,13 @@ const Header: React.FC = () => {
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Stethoscope size={24} className="text-primary-600" />
+                <Image 
+                  src="/whoosh-logo.png" 
+                  alt="Whoosh MD Logo" 
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 object-contain"
+                />
                 <span className="text-lg font-bold text-gray-900">Whoosh MD</span>
               </div>
               <button
@@ -162,6 +179,13 @@ const Header: React.FC = () => {
               >
                 My Favorites
               </Link>
+              <Link 
+                href="/about" 
+                className="flex items-center px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={handleNavToggle}
+              >
+                About us
+              </Link>
               {user ? (
                 <>
                   <Link 
@@ -198,7 +222,7 @@ const Header: React.FC = () => {
                 className="btn-primary w-full flex items-center justify-center"
                 onClick={handleNavToggle}
               >
-                Search Now
+                Get Started
               </Link>
             </div>
           </div>

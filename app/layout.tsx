@@ -43,7 +43,7 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <AppProvider>
-            <div className="flex flex-col min-h-screen bg-gray-50">
+            <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
               <Header />
               <main className="flex-grow">
                 {children}

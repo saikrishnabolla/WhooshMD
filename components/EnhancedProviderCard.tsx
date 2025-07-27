@@ -28,9 +28,9 @@ const Button = ({ children, variant = "default", size = "default", className = "
 }) => {
   const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors"
   const variantClasses = {
-    default: "bg-blue-600 text-white hover:bg-blue-700",
-    outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200"
+    default: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 font-semibold",
+    outline: "border border-purple-300 bg-white text-purple-700 hover:bg-purple-50",
+    secondary: "bg-purple-100 text-purple-900 hover:bg-purple-200"
   }
   const sizeClasses = {
     default: "h-10 px-4 py-2",
