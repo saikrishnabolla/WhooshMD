@@ -9,7 +9,6 @@ import {
   Heart,
   CheckCircle,
   Calendar,
-  Play,
   Zap,
   Award,
   Loader2,
