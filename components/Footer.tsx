@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { Heart, Github, Stethoscope } from 'lucide-react';
+import { Heart, Github } from 'lucide-react';
 import { Link } from './ui/Link';
 
 const Footer: React.FC = () => {
