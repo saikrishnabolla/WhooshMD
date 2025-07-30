@@ -6,12 +6,21 @@ import { Provider } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { addVoiceCall } from '../services/storage';
 
+interface PreCallData {
+  patient_name: string;
+  insurance_type: string;
+  preferred_date: string;
+  appointment_type: string;
+  urgency: string;
+}
+
 interface VoiceCallModalProps {
   providers: Provider[];
+  preCallData: PreCallData | null;
   onClose: () => void;
 }
 
-const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) => {
+const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, preCallData, onClose }) => {
   const { user } = useAuth();
   const [status, setStatus] = useState<'idle' | 'initiating' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +34,6 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
     message?: string;
     error?: string;
   }[]>([]);
-  const [appointmentType, setAppointmentType] = useState<string>('general consultation');
   const [currentCallProgress, setCurrentCallProgress] = useState<{
     current: number;
     total: number;
@@ -35,15 +43,6 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
   // Limit to 6 providers max
   const limitedProviders = providers.slice(0, 6);
   const maxProviders = 6;
-
-  const appointmentTypes = [
-    { value: 'general consultation', label: 'General Consultation' },
-    { value: 'physical exam', label: 'Physical Exam' },
-    { value: 'follow-up', label: 'Follow-up Visit' },
-    { value: 'specialist consultation', label: 'Specialist Consultation' },
-    { value: 'urgent care', label: 'Urgent Care' },
-    { value: 'preventive care', label: 'Preventive Care/Wellness Check' },
-  ];
 
   const initiateVoiceCalls = async () => {
     if (!user) {
@@ -76,6 +75,13 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
           specialties: 'General Healthcare'
         })),
         user_id: user.id,
+        pre_call_data: preCallData ? {
+          patient_name: preCallData.patient_name,
+          insurance_type: preCallData.insurance_type,
+          preferred_date: preCallData.preferred_date,
+          appointment_type: preCallData.appointment_type,
+          urgency: preCallData.urgency
+        } : null
       };
       
       const response = await fetch(apiUrl, {
@@ -175,12 +181,33 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
                 <p className="text-gray-600 mb-4">
                   Our AI agent will call {limitedProviders.length} provider{limitedProviders.length > 1 ? 's' : ''} to verify appointment availability in real-time.
                 </p>
+
+                {/* Display collected pre-call information */}
+                {preCallData && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-medium text-green-900 mb-2">Search Details:</h4>
+                    <div className="text-sm text-green-700 space-y-1">
+                      <div><strong>Patient:</strong> {preCallData.patient_name}</div>
+                      <div><strong>Appointment Type:</strong> {preCallData.appointment_type}</div>
+                      {preCallData.insurance_type && (
+                        <div><strong>Insurance:</strong> {preCallData.insurance_type}</div>
+                      )}
+                      {preCallData.preferred_date && (
+                        <div><strong>Preferred Timeframe:</strong> {preCallData.preferred_date}</div>
+                      )}
+                      <div><strong>Urgency:</strong> {preCallData.urgency}</div>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <h4 className="font-medium text-blue-900 mb-2">How it works:</h4>
                   <ul className="text-sm text-blue-700 space-y-1 text-left">
                     <li>• AI agent calls each provider&apos;s office</li>
-                    <li>• Asks about new patient availability this week</li>
+                    <li>• Asks about {preCallData?.appointment_type || 'appointment'} availability{preCallData?.preferred_date ? ` for ${preCallData.preferred_date.toLowerCase()}` : ''}</li>
+                    {preCallData?.insurance_type && (
+                      <li>• Verifies {preCallData.insurance_type} acceptance</li>
+                    )}
                     <li>• Records available appointment slots and types</li>
                     <li>• Provides you with a detailed availability report</li>
                   </ul>
@@ -237,29 +264,6 @@ const VoiceCallModal: React.FC<VoiceCallModalProps> = ({ providers, onClose }) =
               </div>
             )}
           </div>
-
-          {/* Appointment Type Selection */}
-          {status === 'idle' && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Appointment Type
-              </label>
-              <select
-                value={appointmentType}
-                onChange={(e) => setAppointmentType(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                {appointmentTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                This helps our AI agent ask about specific appointment types
-              </p>
-            </div>
-          )}
 
           {/* Provider List */}
           <div className="space-y-3 mb-6">

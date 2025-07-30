@@ -7,6 +7,7 @@ import ProviderCard from '../components/ProviderCard';
 import ProviderDetail from '../components/ProviderDetail';
 import EmptyState from '../components/EmptyState';
 import VoiceCallModal from '../components/VoiceCallModal';
+import PreCallDataForm from '../components/PreCallDataForm';
 import SearchHistory from '../components/SearchHistory';
 import { Provider, SearchParams, SearchHistoryItem } from '../types';
 import { searchProviders } from '../services/api';
@@ -30,6 +31,14 @@ interface CallResult {
   recording_url?: string;
 }
 
+interface PreCallData {
+  patient_name: string;
+  insurance_type: string;
+  preferred_date: string;
+  appointment_type: string;
+  urgency: string;
+}
+
 const Search: React.FC = () => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useState<SearchParams>({
@@ -43,6 +52,8 @@ const Search: React.FC = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [selectedProviders, setSelectedProviders] = useState<Provider[]>([]);
   const [showVoiceCallModal, setShowVoiceCallModal] = useState(false);
+  const [showPreCallForm, setShowPreCallForm] = useState(false);
+  const [preCallData, setPreCallData] = useState<PreCallData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [allResults, setAllResults] = useState<Provider[]>([]);
   const [totalResults, setTotalResults] = useState(0);
@@ -200,11 +211,22 @@ const Search: React.FC = () => {
       alert('Please select at least one provider for availability checking');
       return;
     }
+    setShowPreCallForm(true);
+  };
+
+  const handlePreCallFormSubmit = (data: PreCallData) => {
+    setPreCallData(data);
+    setShowPreCallForm(false);
     setShowVoiceCallModal(true);
+  };
+
+  const handleClosePreCallForm = () => {
+    setShowPreCallForm(false);
   };
 
   const handleCloseVoiceModal = () => {
     setShowVoiceCallModal(false);
+    setPreCallData(null); // Clear pre-call data when modal closes
     // Refresh call results after modal closes
     setTimeout(() => {
       if (user) {
@@ -431,10 +453,29 @@ const Search: React.FC = () => {
         />
       )}
       
+      {/* Pre Call Data Form Modal */}
+      {showPreCallForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={handleClosePreCallForm}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
+            >
+              ×
+            </button>
+            <PreCallDataForm
+              onSubmit={handlePreCallFormSubmit}
+              isLoading={false}
+            />
+          </div>
+        </div>
+      )}
+      
       {/* Voice Call Modal */}
       {showVoiceCallModal && (
         <VoiceCallModal
           providers={selectedProviders}
+          preCallData={preCallData}
           onClose={handleCloseVoiceModal}
         />
       )}

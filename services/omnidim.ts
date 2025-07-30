@@ -1,14 +1,30 @@
 import axios from 'axios';
 import { VoiceCallResult, AppointmentSlot } from '../types';
 
-// Omnidim Configuration
+// Omnidim API Configuration
 const OMNIDIM_CONFIG = {
-  apiUrl: 'https://backend.omnidim.io/api/v1/calls/dispatch',
-  agentId: 1060,
-  testPhoneNumber: '+16175712439', // Currently hardcoded for testing
-  webhookUrl: process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://yourapp.com/api/webhook/call-result',
-  apiKey: process.env.OMNIDIM_API_KEY,
+  api_url: process.env.OMNIDIM_API_URL || 'https://api.omnidim.com/v1',
+  api_key: process.env.OMNIDIM_API_KEY,
+  test_mode: process.env.NODE_ENV === 'development',
+  default_system_prompt: `You are a friendly healthcare appointment scheduler calling provider offices. 
+    Your role is to inquire about appointment availability for new patients. Be professional, 
+    concise, and respectful of the staff's time.`
 };
+
+interface PreCallData {
+  patient_name: string;
+  insurance_type: string;
+  preferred_date: string;
+  appointment_type: string;
+  urgency: string;
+}
+
+interface ProviderCallRequest {
+  providerNpi: string;
+  providerName: string;
+  userId: string;
+  preCallData?: PreCallData | null;
+}
 
 export interface OmnidimCallRequest {
   agent_id: number;
@@ -18,6 +34,14 @@ export interface OmnidimCallRequest {
     provider_npi: string;
     specialties: string;
     purpose: string;
+    additional_context?: string;
+    appointment_details?: {
+      requested_type: string;
+      preferred_timeframe: string;
+      insurance_type: string;
+      urgency_level: string;
+      patient_name: string;
+    } | null;
     webhook_url: string;
     dispatch_timestamp: number;
   };
@@ -30,51 +54,80 @@ export interface OmnidimCallResponse {
   message?: string;
 }
 
-export class OmnidimService {
-  private agentId: number;
-  private webhookUrl: string;
+class OmnidimService {
+  private apiKey: string;
+  private baseUrl: string;
 
   constructor() {
-    this.agentId = OMNIDIM_CONFIG.agentId;
-    this.webhookUrl = OMNIDIM_CONFIG.webhookUrl;
+    this.apiKey = OMNIDIM_CONFIG.api_key || '';
+    this.baseUrl = OMNIDIM_CONFIG.api_url;
+
+    if (!this.apiKey && !OMNIDIM_CONFIG.test_mode) {
+      console.warn('Omnidim API key not configured. Service will run in mock mode.');
+    }
   }
 
   /**
-   * Create an outbound call to verify appointment availability
+   * Create an outbound call to verify appointment availability with pre-call context
    */
   async createAppointmentVerificationCall(
-    providerName: string,
     providerNpi: string,
-    specialties: string,
+    providerName: string,
     userId: string,
-    webhookUrl?: string
-  ): Promise<OmnidimCallResponse> {
-    if (!OMNIDIM_CONFIG.apiKey) {
-      throw new Error('Omnidim API key not configured');
+    preCallData?: PreCallData | null
+  ): Promise<{ success: boolean; callId?: string; message?: string }> {
+    if (!this.apiKey && !OMNIDIM_CONFIG.test_mode) {
+      return { success: false, message: 'Omnidim API key not configured and not in test mode.' };
     }
 
     const dispatchTimestamp = Date.now();
     
+    // Build context-aware purpose and details based on pre-call data
+    let purpose = "Check availability for new patients";
+    let additionalContext = "";
+    
+    if (preCallData) {
+      purpose = `Check availability for ${preCallData.appointment_type}`;
+      
+      if (preCallData.preferred_date) {
+        purpose += ` ${preCallData.preferred_date.toLowerCase()}`;
+      }
+      
+      additionalContext = [
+        preCallData.insurance_type ? `Insurance: ${preCallData.insurance_type}` : null,
+        preCallData.urgency !== 'Routine' ? `Urgency: ${preCallData.urgency}` : null,
+        preCallData.patient_name ? `Patient: ${preCallData.patient_name}` : null
+      ].filter(Boolean).join(', ');
+    }
+    
     const callRequest: OmnidimCallRequest = {
-      agent_id: this.agentId,
-      to_number: OMNIDIM_CONFIG.testPhoneNumber,
+      agent_id: 1060, // This will need to be dynamic or passed in if agent_id is configurable
+      to_number: '+16175712439', // Currently hardcoded for testing
       call_context: {
         provider_name: providerName,
         provider_npi: providerNpi,
-        specialties: specialties,
-        purpose: "Check availability for new patients this week",
-        webhook_url: webhookUrl || this.webhookUrl,
+        specialties: "General Practice", // Placeholder, can be derived from preCallData
+        purpose: purpose,
+        additional_context: additionalContext,
+        appointment_details: preCallData ? {
+          requested_type: preCallData.appointment_type,
+          preferred_timeframe: preCallData.preferred_date,
+          insurance_type: preCallData.insurance_type,
+          urgency_level: preCallData.urgency,
+          patient_name: preCallData.patient_name
+        } : null,
+        webhook_url: process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://yourapp.com/api/webhook/call-result',
         dispatch_timestamp: dispatchTimestamp,
       },
     };
 
     try {
       const response = await axios.post(
-        OMNIDIM_CONFIG.apiUrl,
+        `${this.baseUrl}/calls/dispatch`, // Assuming this is the correct endpoint
         callRequest,
         {
           headers: {
-            Authorization: `Bearer ${OMNIDIM_CONFIG.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
         }
@@ -85,14 +138,16 @@ export class OmnidimService {
       await this.storeCallMapping(callId, providerNpi, userId);
 
       return {
-        call_id: callId,
-        status: 'dispatched',
-        dispatch_timestamp: dispatchTimestamp,
+        success: true,
+        callId: callId,
         message: 'Call dispatched successfully',
       };
     } catch (error) {
       console.error('Error creating Omnidim call:', error);
-      throw new Error(this.handleApiError(error));
+      return {
+        success: false,
+        message: this.handleApiError(error),
+      };
     }
   }
 
@@ -100,46 +155,39 @@ export class OmnidimService {
    * Create multiple calls for batch appointment verification
    */
   async createBatchAppointmentCalls(
-    providers: Array<{
-      name: string;
-      npi: string;
-      specialties: string;
-    }>,
-    userId: string,
-    webhookUrl?: string
-  ): Promise<OmnidimCallResponse[]> {
-    const calls: OmnidimCallResponse[] = [];
-    const maxBatchSize = 6; // Limit to 6 providers
+    requests: ProviderCallRequest[]
+  ): Promise<Array<{ success: boolean; providerNpi: string; providerName?: string; callId?: string; message?: string }>> {
+    const results = [];
 
-    // Limit providers to maximum batch size
-    const limitedProviders = providers.slice(0, maxBatchSize);
-
-    for (const provider of limitedProviders) {
+    for (const request of requests) {
       try {
-        const call = await this.createAppointmentVerificationCall(
-          provider.name,
-          provider.npi,
-          provider.specialties,
-          userId,
-          webhookUrl
+        const result = await this.createAppointmentVerificationCall(
+          request.providerNpi,
+          request.providerName,
+          request.userId,
+          request.preCallData
         );
-        calls.push(call);
+        
+        results.push({
+          ...result,
+          providerNpi: request.providerNpi,
+          providerName: request.providerName
+        });
         
         // Add delay between calls to avoid rate limiting
         await this.delay(2000);
       } catch (error) {
-        console.error(`Error creating call for provider ${provider.name}:`, error);
-        // Continue with other providers even if one fails
-        calls.push({
-          call_id: `error_${Date.now()}`,
-          status: 'error',
-          dispatch_timestamp: Date.now(),
-          message: error instanceof Error ? error.message : 'Unknown error',
+        console.error(`Error creating call for provider ${request.providerName}:`, error);
+        results.push({
+          success: false,
+          providerNpi: request.providerNpi,
+          providerName: request.providerName,
+          message: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     }
 
-    return calls;
+    return results;
   }
 
   /**
@@ -161,7 +209,7 @@ export class OmnidimService {
       return {
         provider_npi: providerNpi,
         provider_name: providerName,
-        provider_phone: OMNIDIM_CONFIG.testPhoneNumber,
+        provider_phone: '+16175712439', // Currently hardcoded for testing
         call_id: event.call_id || `omnidim_${dispatchTimestamp}`,
         status: event.status || 'completed',
         availability_found: event.availability?.accepting_new_patients || false,
