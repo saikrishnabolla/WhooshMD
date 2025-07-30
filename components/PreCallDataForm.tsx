@@ -122,65 +122,46 @@ export const PreCallDataForm: React.FC<PreCallDataFormProps> = ({
 
             {/* Appointment Type */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="appointment_type" className="block text-sm font-medium text-gray-700">
                 Appointment Type
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="space-y-2">
-                {[
-                  { value: 'General checkup', label: 'General checkup' },
-                  { value: 'New patient consultation', label: 'New patient visit' },
-                  { value: 'Specialist referral', label: 'Specialist referral' },
-                  { value: 'Follow-up care', label: 'Follow-up visit' }
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex items-center space-x-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="appointment_type"
-                      value={option.value}
-                      checked={formData.appointment_type === option.value}
-                      onChange={(e) => updateField('appointment_type', e.target.value)}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{option.label}</span>
-                  </label>
-                ))}
-              </div>
+              <select
+                id="appointment_type"
+                value={formData.appointment_type}
+                onChange={(e) => updateField('appointment_type', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                required
+              >
+                <option value="">Select appointment type</option>
+                <option value="General checkup">General checkup</option>
+                <option value="New patient consultation">New patient visit</option>
+                <option value="Specialist referral">Specialist referral</option>
+                <option value="Follow-up care">Follow-up visit</option>
+              </select>
             </div>
 
             {/* Combined Timeframe & Urgency */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="urgency" className="block text-sm font-medium text-gray-700">
                 <Clock className="h-4 w-4 inline mr-1" />
                 When do you need to be seen?
               </label>
-              <div className="space-y-2">
-                {[
-                  { value: 'ASAP', label: 'ASAP (urgent)' },
-                  { value: 'This week', label: 'This week' },
-                  { value: 'Next week', label: 'Next week' },
-                  { value: 'Within 2 weeks', label: 'Within 2 weeks' },
-                  { value: 'Flexible', label: 'Flexible timing' }
-                ].map((option) => (
-                  <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="urgency"
-                      value={option.value}
-                      checked={formData.urgency === option.value}
-                      onChange={(e) => {
-                        updateField('urgency', e.target.value);
-                        updateField('preferred_date', e.target.value); // Keep both fields in sync
-                      }}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{option.label}</span>
-                  </label>
-                ))}
-              </div>
+              <select
+                id="urgency"
+                value={formData.urgency}
+                onChange={(e) => {
+                  updateField('urgency', e.target.value);
+                  updateField('preferred_date', e.target.value); // Keep both fields in sync
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="ASAP">ASAP (urgent)</option>
+                <option value="This week">This week</option>
+                <option value="Next week">Next week</option>
+                <option value="Within 2 weeks">Within 2 weeks</option>
+                <option value="Flexible">Flexible timing</option>
+              </select>
             </div>
 
           </div>
