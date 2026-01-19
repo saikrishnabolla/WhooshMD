@@ -3,8 +3,6 @@ const callMapping = new Map<string, string>()
 
 export function storeCallMapping(callId: string, providerNpi: string): void {
   callMapping.set(String(callId), providerNpi)
-  console.log(`✅ Stored mapping: call_id ${callId} -> provider_npi ${providerNpi}`)
-  console.log(`📊 Total mappings stored: ${callMapping.size}`)
 }
 
 export function getCallMapping(): Map<string, string> {

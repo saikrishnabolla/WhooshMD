@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
             call_id: mockCallId,
             provider_number: provider.number,
             provider_name: provider.name,
-            phone_number: '+16175712439', // Test number
+            phone_number: process.env.OMNIDIM_TEST_PHONE || 'mock-phone',
             status: Math.random() < CALL_DISPATCH_CONFIG.success_rate ? 'success' : 'failed',
             dispatch_timestamp: dispatchTimestamp,
             message: `Mock call initiated for ${provider.name}`,

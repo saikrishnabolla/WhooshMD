@@ -5,9 +5,10 @@ import { VoiceCallResult, AppointmentSlot } from '../types';
 const OMNIDIM_CONFIG = {
   api_url: process.env.OMNIDIM_API_URL || 'https://api.omnidim.com/v1',
   api_key: process.env.OMNIDIM_API_KEY,
+  agent_id: parseInt(process.env.OMNIDIM_AGENT_ID || '1060', 10),
   test_mode: process.env.NODE_ENV === 'development',
-  default_system_prompt: `You are a friendly healthcare appointment scheduler calling provider offices. 
-    Your role is to inquire about appointment availability for new patients. Be professional, 
+  default_system_prompt: `You are a friendly healthcare appointment scheduler calling provider offices.
+    Your role is to inquire about appointment availability for new patients. Be professional,
     concise, and respectful of the staff's time.`
 };
 
@@ -101,8 +102,8 @@ class OmnidimService {
     }
     
     const callRequest: OmnidimCallRequest = {
-      agent_id: 1060, // This will need to be dynamic or passed in if agent_id is configurable
-      to_number: '+16175712439', // Currently hardcoded for testing
+      agent_id: OMNIDIM_CONFIG.agent_id,
+      to_number: process.env.OMNIDIM_TEST_PHONE || '', // Set via environment variable
       call_context: {
         provider_name: providerName,
         provider_npi: providerNpi,
@@ -209,7 +210,7 @@ class OmnidimService {
       return {
         provider_npi: providerNpi,
         provider_name: providerName,
-        provider_phone: '+16175712439', // Currently hardcoded for testing
+        provider_phone: event.phone_number || '',
         call_id: event.call_id || `omnidim_${dispatchTimestamp}`,
         status: event.status || 'completed',
         availability_found: event.availability?.accepting_new_patients || false,
@@ -253,8 +254,6 @@ class OmnidimService {
 
       if (!response.ok) {
         console.error('Failed to store call mapping:', response.statusText);
-      } else {
-        console.log(`✅ Stored call mapping: ${callId} -> ${providerNpi}`);
       }
     } catch (error) {
       console.error('Error storing call mapping:', error);

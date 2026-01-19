@@ -10,8 +10,6 @@ export async function POST(request: NextRequest) {
     }
 
     callMapping.set(Number(call_id), provider_npi)
-    console.log(`✅ Stored mapping: call_id ${call_id} -> provider_npi ${provider_npi}`)
-    console.log(`📊 Total mappings stored: ${callMapping.size}`)
 
     return NextResponse.json({
       success: true,
@@ -19,7 +17,7 @@ export async function POST(request: NextRequest) {
       total_mappings: callMapping.size,
     })
   } catch (error) {
-    console.error("❌ Error storing call mapping:", error)
+    console.error("Error storing call mapping:", error)
     return NextResponse.json({ error: "Failed to store mapping" }, { status: 500 })
   }
 }
@@ -30,7 +28,6 @@ export async function GET(request: NextRequest) {
 
   if (callId) {
     const npi = callMapping.get(Number.parseInt(callId))
-    console.log(`🔍 Looking up call_id ${callId}, found NPI: ${npi}`)
     return NextResponse.json({ call_id: callId, provider_npi: npi })
   }
 
@@ -39,8 +36,6 @@ export async function GET(request: NextRequest) {
     call_id,
     provider_npi,
   }))
-
-  console.log(`📋 Returning ${mappings.length} total mappings`)
 
   return NextResponse.json({
     mappings,

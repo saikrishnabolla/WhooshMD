@@ -5,11 +5,6 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const callIds = searchParams.get("call_ids")?.split(",").map(Number) || []
 
-  console.log("🧪 Test polling endpoint called")
-  console.log("📋 Requested call IDs:", callIds)
-  console.log("🗂️ Available mappings:", Array.from(callMapping.entries()))
-  console.log("📊 Available results:", Array.from(callResults.entries()))
-
   const results = []
 
   for (const callId of callIds) {
@@ -49,9 +44,6 @@ export async function POST(request: NextRequest) {
   try {
     const { call_ids } = await request.json()
 
-    console.log("🧪 Test polling POST endpoint called")
-    console.log("📋 Requested call IDs:", call_ids)
-
     // Simulate the same logic as the real endpoint
     const response = await fetch(`${request.nextUrl.origin}/api/call-results`, {
       method: "POST",
@@ -73,7 +65,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("❌ Error in test polling:", error)
+    console.error("Error in test polling:", error)
     return NextResponse.json({ error: "Test polling failed" }, { status: 500 })
   }
 }
