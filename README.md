@@ -4,6 +4,8 @@ AI-powered healthcare provider search that actually calls offices for you.
 
 **Live at [whooshmd.com](https://whooshmd.com)**
 
+![Preview](https://v1.screenshot.11ty.dev/https%3A%2F%2Fwhooshmd.com/opengraph/)
+
 ---
 
 WhooshMD helps you find healthcare providers and verify insurance + appointment availability in real time. The key feature: an AI voice agent (powered by Omnidim) that simultaneously calls up to 6 provider offices on your behalf, asks about your insurance, and reports back with structured results.
