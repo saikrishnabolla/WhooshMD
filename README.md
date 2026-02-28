@@ -9,7 +9,7 @@ AI-powered healthcare provider search that actually calls offices for you.
 ## Highlights
 
 - AI voice agent (Omnidim) calls up to 6 provider offices simultaneously
-- NPI Registry integration - 50,000+ verified US providers
+- NPI Registry API proxy for real-time provider lookup across the US
 - 7 Supabase tables with row-level security
 - Community ratings, reviews, and insurance verification data
 - HIPAA-aware: only collects first name, insurance type, appointment preferences - no PHI stored
