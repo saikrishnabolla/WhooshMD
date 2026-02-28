@@ -6,6 +6,14 @@ AI-powered healthcare provider search that actually calls offices for you.
 
 ![Preview](https://v1.screenshot.11ty.dev/https%3A%2F%2Fwhooshmd.com/opengraph/_wait:3/)
 
+## Highlights
+
+- AI voice agent (Omnidim) calls up to 6 provider offices simultaneously
+- NPI Registry integration - 50,000+ verified US providers
+- 7 Supabase tables with row-level security
+- Community ratings, reviews, and insurance verification data
+- HIPAA-aware: only collects first name, insurance type, appointment preferences - no PHI stored
+
 ---
 
 WhooshMD helps you find healthcare providers and verify insurance + appointment availability in real time. The key feature: an AI voice agent (powered by Omnidim) that simultaneously calls up to 6 provider offices on your behalf, asks about your insurance, and reports back with structured results.
